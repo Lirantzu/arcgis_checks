@@ -20,7 +20,7 @@
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
-            text-shadow: 0 0 10px #00FF00;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
         }
         button {
             background-color: #000;
@@ -102,7 +102,7 @@
         }
 
         // Override the appendToResults function to auto-scroll
-        function appendToResults(text) {
+        window.appendToResults = function(text) {
             const resultsElement = document.getElementById('results');
             if (resultsElement) {
                 resultsElement.innerHTML += text;
