@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #results { border: 1px solid #ddd; padding: 20px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Map Checker</h1>
+    <button onclick="checkMaps()">Check Maps</button>
+    <div id="results"></div>
+
+    <script src="https://https://raw.githubusercontent.com/Lirantzu/arcgis_checks/main/map_checker.js
+    <script>
+        function checkMaps() {
+            document.getElementById('results').innerHTML = 'Checking maps...';
+            checkAllMaps().then(() => {
+                console.log('Map check complete');
+            }).catch(error => {
+                console.error('Error checking maps:', error);
+                document.getElementById('results').innerHTML = 'An error occurred while checking maps.';
+            });
+        }
+    </script>
+</body>
+</html>
