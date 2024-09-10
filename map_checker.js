@@ -28,11 +28,11 @@ async function checkLayer(layer, indent = "") {
     const layerUrl = layer.url;
     
     if (layer.layers || layer.layerGroups) {  // This is a group layer
-        appendToResults(`${indent}Group: '${layerTitle}'`);
+        appendToResults(`<pre>${indent}Group: '${layerTitle}'</pre>`);
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
         for (const sublayer of sublayers) {
-            if (!await checkLayer(sublayer, indent + "  ")) {
+            if (!await checkLayer(sublayer, indent + "&nbsp;&nbsp;")) {
                 allSublayersOk = false;
             }
         }
@@ -40,45 +40,45 @@ async function checkLayer(layer, indent = "") {
     } else if (layerUrl) {
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
-            appendToResults(`${indent}Layer '${layerTitle}' is accessible and valid.`);
+            appendToResults(`<pre>${indent}Layer '${layerTitle}' is accessible and valid.</pre>`);
             return true;
         } else {
-            appendToResults(`${indent}Layer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`);
+            appendToResults(`<pre>${indent}Layer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error</pre>`);
             return false;
         }
     } else {
-        appendToResults(`${indent}Layer '${layerTitle}' - No URL found for the layer.      <<<<<<<<<< Error`);
+        appendToResults(`<pre>${indent}Layer '${layerTitle}' - No URL found for the layer.      <<<<<<<<<< Error</pre>`);
         return false;
     }
 }
 
 async function checkSpecificMap(mapId) {
     const mapUrl = baseUrl.replace('{mapId}', mapId);
-    appendToResults(`Fetching JSON data from URL: ${mapUrl}`);
+    appendToResults(`<pre>Fetching JSON data from URL: ${mapUrl}</pre>`);
     const { isAccessible, result } = await testService(mapUrl);
     if (isAccessible) {
         const mapData = result;
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`<br><span class="rtl">Map Title: ${mapTitle}</span>`);
+        appendToResults(`<pre><span class="rtl">Map Title: ${mapTitle}</span></pre>`);
         
         let allLayersOk = true;
         const problematicLayers = [];
         
         // Check basemaps
         const basemaps = mapData.baseMap?.baseMapLayers || [];
-        appendToResults("<br>Checking Basemaps:");
+        appendToResults("<pre>Checking Basemaps:</pre>");
         for (const basemap of basemaps) {
-            if (!await checkLayer(basemap, "  ")) {
+            if (!await checkLayer(basemap, "&nbsp;&nbsp;")) {
                 allLayersOk = false;
                 problematicLayers.push(`Basemap: ${basemap.title || 'Unnamed Basemap'}`);
             }
         }
         
         // Check operational layers
-        appendToResults("<br>Checking Operational Layers:");
+        appendToResults("<pre>Checking Operational Layers:</pre>");
         const operationalLayers = mapData.operationalLayers || [];
         for (const layer of operationalLayers) {
-            if (!await checkLayer(layer, "  ")) {
+            if (!await checkLayer(layer, "&nbsp;&nbsp;")) {
                 allLayersOk = false;
                 problematicLayers.push(layer.title || 'Unnamed Layer');
             }
@@ -86,7 +86,7 @@ async function checkSpecificMap(mapId) {
         
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
-        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`);
+        appendToResults(`<pre>Failed to fetch web map data for map ID ${mapId}. Error: ${result}</pre>`);
         return { allLayersOk: false, mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: [] };
     }
 }
@@ -94,7 +94,7 @@ async function checkSpecificMap(mapId) {
 function appendToResults(text) {
     const resultsElement = document.getElementById('results');
     if (resultsElement) {
-        resultsElement.innerHTML += text + '<br>';
+        resultsElement.innerHTML += text;
         resultsElement.scrollTop = resultsElement.scrollHeight; // Auto-scroll to bottom
     } else {
         console.log(text);
@@ -113,25 +113,25 @@ async function checkAllMaps() {
         }
     }
 
-    appendToResults("<br>" + "=".repeat(50));
+    appendToResults("<pre>" + "=".repeat(50) + "</pre>");
     if (allMapsOk) {
-        appendToResults(" ALL MAPS AND LAYERS ARE ACCESSIBLE! :) ");
+        appendToResults("<pre> ALL MAPS AND LAYERS ARE ACCESSIBLE! :) </pre>");
     } else {
-        appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!");
+        appendToResults("<pre>!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!</pre>");
         for (const { mapTitle, problematicLayers } of mapsWithErrors) {
-            appendToResults(`<span class="rtl">  :${mapTitle}:</span>`);
+            appendToResults(`<pre><span class="rtl">  :${mapTitle}:</span></pre>`);
             for (const layer of problematicLayers) {
-                appendToResults(`<span class="rtl">     ${layer} * </span>`);
+                appendToResults(`<pre><span class="rtl">     ${layer} * </span></pre>`);
             }
         }
     }
-    appendToResults("=".repeat(50) + "<br>");
+    appendToResults("<pre>" + "=".repeat(50) + "</pre>");
 }
 
 function checkMaps() {
     document.getElementById('results').innerHTML = '';
     checkAllMaps().catch(error => {
         console.error("An error occurred:", error);
-        appendToResults("An error occurred while checking maps: " + error.message);
+        appendToResults("<pre>An error occurred while checking maps: " + error.message + "</pre>");
     });
 }
