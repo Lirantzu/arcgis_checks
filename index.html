@@ -5,19 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Map Checker</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        #results { border: 1px solid #ddd; padding: 20px; margin-top: 20px; }
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #00FF00;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 20vh;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00FF00;
+        }
+        button {
+            background-color: #000;
+            color: #00FF00;
+            border: 2px solid #00FF00;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #00FF00;
+            color: #000;
+        }
+        #resultsContainer {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 60%;
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 2px solid #00FF00;
+            padding: 20px;
+            overflow: auto;
+            box-shadow: 0 0 20px #00FF00;
+        }
+        #results {
+            font-family: 'Courier New', monospace;
+            color: #FFFF00;
+            white-space: pre-wrap;
+        }
+        .rtl {
+            direction: rtl;
+            unicode-bidi: bidi-override;
+            text-align: right;
+            display: inline-block;
+        }
+        pre {
+            margin: 0;
+            font-family: inherit;
+        }
+        #closeButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #00FF00;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <h1>Map Checker</h1>
-    <button onclick="checkMaps()">Check Maps</button>
-    <div id="results"></div>
+    <button onclick="checkMaps()">Initialize</button>
+    <div id="resultsContainer">
+        <button id="closeButton" onclick="closeResults()">X</button>
+        <div id="results"></div>
+    </div>
 
     <script src="map_checker.js"></script>
     <script>
         function checkMaps() {
             document.getElementById('results').innerHTML = 'Checking maps...';
+            document.getElementById('resultsContainer').style.display = 'block';
             checkAllMaps().then(() => {
                 console.log('Map check complete');
             }).catch(error => {
@@ -25,6 +96,49 @@
                 document.getElementById('results').innerHTML = 'An error occurred while checking maps.';
             });
         }
+
+        function closeResults() {
+            document.getElementById('resultsContainer').style.display = 'none';
+        }
+
+        // Matrix-like rain effect
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        document.body.appendChild(canvas);
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.zIndex = '-1';
+
+        const columns = canvas.width / 20;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#00FF00';
+            ctx.font = '15px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = String.fromCharCode(Math.random() * 128);
+                ctx.fillText(text, i * 20, drops[i] * 20);
+
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(draw, 33);
     </script>
 </body>
 </html>
