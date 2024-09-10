@@ -15,16 +15,5 @@
     <div id="results"></div>
 
     <script src="map_checker.js"></script>
-    <script>
-        function checkMaps() {
-            document.getElementById('results').innerHTML = 'Checking maps...';
-            checkAllMaps().then(() => {
-                console.log('Map check complete');
-            }).catch(error => {
-                console.error('Error checking maps:', error);
-                document.getElementById('results').innerHTML = 'An error occurred while checking maps.';
-            });
-        }
-    </script>
 </body>
 </html>
