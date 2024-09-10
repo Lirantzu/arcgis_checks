@@ -9,10 +9,6 @@ const mapNames = {
 const mapIds = Object.keys(mapNames);
 const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{mapId}/data?f=json";
 
-function reverseText(text) {
-    return /[\u0590-\u05FF]/.test(text) ? text.split('').reverse().join('') : text;
-}
-
 async function testService(url) {
     try {
         const response = await fetch(`${url}?f=json`, { timeout: 15000 });
@@ -32,7 +28,7 @@ async function checkLayer(layer, indent = "") {
     const layerUrl = layer.url;
     
     if (layer.layers || layer.layerGroups) {  // This is a group layer
-        appendToResults(`${indent}Group: '${reverseText(layerTitle)}'`);
+        appendToResults(`${indent}Group: '${layerTitle}'`);
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
         for (const sublayer of sublayers) {
@@ -44,14 +40,14 @@ async function checkLayer(layer, indent = "") {
     } else if (layerUrl) {
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
-            appendToResults(`${indent}Layer '${reverseText(layerTitle)}' is accessible and valid.`);
+            appendToResults(`${indent}Layer '${layerTitle}' is accessible and valid.`);
             return true;
         } else {
-            appendToResults(`${indent}Layer '${reverseText(layerTitle)}' is not accessible. Error: ${result}      <<<<<<<<<< Error`);
+            appendToResults(`${indent}Layer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`);
             return false;
         }
     } else {
-        appendToResults(`${indent}Layer '${reverseText(layerTitle)}' - No URL found for the layer.      <<<<<<<<<< Error`);
+        appendToResults(`${indent}Layer '${layerTitle}' - No URL found for the layer.      <<<<<<<<<< Error`);
         return false;
     }
 }
@@ -63,7 +59,7 @@ async function checkSpecificMap(mapId) {
     if (isAccessible) {
         const mapData = result;
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`\nMap Title: ${reverseText(mapTitle)}`);
+        appendToResults(`\nMap Title: ${mapTitle}\n`);
         
         let allLayersOk = true;
         const problematicLayers = [];
@@ -99,6 +95,7 @@ function appendToResults(text) {
     const resultsElement = document.getElementById('results');
     if (resultsElement) {
         resultsElement.innerHTML += text + '<br>';
+        resultsElement.scrollTop = resultsElement.scrollHeight; // Auto-scroll to bottom
     } else {
         console.log(text);
     }
@@ -122,9 +119,9 @@ async function checkAllMaps() {
     } else {
         appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!");
         for (const { mapTitle, problematicLayers } of mapsWithErrors) {
-            appendToResults(`  :${reverseText(mapTitle)}:`);
+            appendToResults(`  :${mapTitle}:`);
             for (const layer of problematicLayers) {
-                appendToResults(`     ${reverseText(layer)} * `);
+                appendToResults(`     ${layer} * `);
             }
         }
     }
