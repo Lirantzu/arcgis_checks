@@ -41,6 +41,7 @@ async function checkLayer(layer, indent = "") {
         const results = await Promise.all(sublayers.map(sublayer => checkLayer(sublayer, indent + "&nbsp;&nbsp;")));
         return { isAccessible: results.every(r => r.isAccessible), message: message + results.map(r => r.message).join('') };
     } else if (layerUrl) {
+        message += `${indent}Checking Layer: '${reverseText(layerTitle)}'<br>`;
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
             message += `${indent}Layer '${reverseText(layerTitle)}' is accessible and valid.<br>`;
@@ -72,6 +73,7 @@ async function checkSpecificMap(mapId) {
         const basemaps = mapData.baseMap?.baseMapLayers || [];
         message += "<br>Checking Basemaps:<br>";
         for (const basemap of basemaps) {
+            message += `Checking Basemap: '${reverseText(basemap.title || 'Unnamed Basemap')}'<br>`;
             const result = await checkLayer(basemap, "&nbsp;&nbsp;");
             allLayersOk = allLayersOk && result.isAccessible;
             message += result.message;
@@ -109,11 +111,13 @@ async function checkAllMaps() {
     let allMapsOk = true;
 
     for (const mapId of mapIds) {
+        displayResults(`Checking Map: ${reverseText(mapNames[mapId] || mapId)}<br>`);
         const result = await checkSpecificMap(mapId);
         results.push(result);
         if (!result.allLayersOk) {
             allMapsOk = false;
         }
+        displayResults(result.message);
     }
 
     let finalMessage = "<hr>";
@@ -130,9 +134,15 @@ async function checkAllMaps() {
     }
     finalMessage += "<hr>";
 
-    // Display results in HTML
+    // Display final results in HTML
     displayResults(finalMessage);
 }
 
-// This line is optional, depending on how you want to trigger the check
-// checkAllMaps().catch(error => console.error("An error occurred:", error));
+// This function will be called from the HTML button
+function checkMaps() {
+    displayResults('Starting map checks...<br>');
+    checkAllMaps().catch(error => {
+        console.error("An error occurred:", error);
+        displayResults("An error occurred while checking maps: " + error.message);
+    });
+}
