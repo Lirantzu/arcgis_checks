@@ -101,16 +101,18 @@
             document.getElementById('resultsContainer').style.display = 'none';
         }
 
-        // Override the appendToResults function to auto-scroll
-        window.appendToResults = function(text) {
-            const resultsElement = document.getElementById('results');
-            if (resultsElement) {
-                resultsElement.innerHTML += text + '<br>';
+         window.appendToResults = function(text) {
+        const resultsElement = document.getElementById('results');
+        if (resultsElement) {
+            resultsElement.innerHTML += text + '<br>';
+            // Use setTimeout to ensure the scroll happens after the content is rendered
+            setTimeout(() => {
                 resultsElement.scrollTop = resultsElement.scrollHeight;
-            } else {
-                console.log(text);
-            }
+            }, 0);
+        } else {
+            console.log(text);
         }
+    }
 
         // Matrix-like rain effect
         const canvas = document.createElement('canvas');
