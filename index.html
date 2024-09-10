@@ -86,44 +86,30 @@
 
     <script src="map_checker.js"></script>
     <script>
-        let lastScrollHeight = 0;
-
-        function checkAndScroll() {
-            const resultsElement = document.getElementById('results');
-            if (resultsElement && resultsElement.scrollHeight > lastScrollHeight) {
-                resultsElement.scrollTop = resultsElement.scrollHeight;
-                lastScrollHeight = resultsElement.scrollHeight;
-            }
-        }
-
         window.appendToResults = function(text) {
             const resultsElement = document.getElementById('results');
             if (resultsElement) {
-                resultsElement.innerHTML += text + '<br>';
-                checkAndScroll();
+                resultsElement.textContent += text;
+                resultsElement.scrollTop = resultsElement.scrollHeight;
             } else {
                 console.log(text);
             }
         }
 
         function checkMaps() {
-            document.getElementById('results').innerHTML = 'Checking maps...<br>';
+            document.getElementById('results').textContent = 'Checking maps...\n';
             document.getElementById('resultsContainer').style.display = 'block';
-            lastScrollHeight = 0; // Reset scroll height
             checkAllMaps().then(() => {
                 console.log('Map check complete');
             }).catch(error => {
                 console.error('Error checking maps:', error);
-                appendToResults('An error occurred while checking maps: ' + error.message);
+                appendToResults('An error occurred while checking maps: ' + error.message + '\n');
             });
         }
 
         function closeResults() {
             document.getElementById('resultsContainer').style.display = 'none';
         }
-
-        // Start a periodic check for new content and scroll
-        setInterval(checkAndScroll, 100);
 
         // Matrix-like rain effect
         const canvas = document.createElement('canvas');
