@@ -93,6 +93,16 @@ async function checkSpecificMap(mapId) {
     }
 }
 
+// Function to display results in HTML
+function displayResults(finalMessage) {
+    const resultsElement = document.getElementById('results');
+    if (resultsElement) {
+        resultsElement.innerHTML = finalMessage;
+    } else {
+        console.error('Results element not found');
+    }
+}
+
 // Main function to check all maps
 async function checkAllMaps() {
     const results = [];
@@ -120,35 +130,9 @@ async function checkAllMaps() {
     }
     finalMessage += "<hr>";
 
-    // Create or update the results display
-    let resultsDisplay = document.getElementById('mapCheckResults');
-    if (!resultsDisplay) {
-        resultsDisplay = document.createElement('div');
-        resultsDisplay.id = 'mapCheckResults';
-        resultsDisplay.style.position = 'fixed';
-        resultsDisplay.style.top = '10%';
-        resultsDisplay.style.left = '10%';
-        resultsDisplay.style.width = '80%';
-        resultsDisplay.style.maxHeight = '80%';
-        resultsDisplay.style.overflowY = 'auto';
-        resultsDisplay.style.backgroundColor = 'white';
-        resultsDisplay.style.border = '1px solid black';
-        resultsDisplay.style.padding = '20px';
-        resultsDisplay.style.zIndex = '1000';
-        document.body.appendChild(resultsDisplay);
-    }
-    resultsDisplay.innerHTML = finalMessage;
-    resultsDisplay.style.display = 'block';
-
-    // Add a close button
-    let closeButton = document.createElement('button');
-    closeButton.textContent = 'Close';
-    closeButton.style.marginTop = '10px';
-    closeButton.onclick = function() {
-        resultsDisplay.style.display = 'none';
-    };
-    resultsDisplay.appendChild(closeButton);
+    // Display results in HTML
+    displayResults(finalMessage);
 }
 
-// Run the check when the script is loaded
-checkAllMaps().catch(error => console.error("An error occurred:", error));
+// This line is optional, depending on how you want to trigger the check
+// checkAllMaps().catch(error => console.error("An error occurred:", error));
