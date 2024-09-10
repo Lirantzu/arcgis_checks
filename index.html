@@ -100,9 +100,9 @@
             const resultsElement = document.getElementById('results');
             if (resultsElement) {
                 resultsElement.innerHTML += text + '<br>';
-                resultsElement.scrollTop = resultsElement.scrollHeight;
+                checkAndScroll();
             } else {
-                    console.log(text);
+                console.log(text);
             }
         }
 
