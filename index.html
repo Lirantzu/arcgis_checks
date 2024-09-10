@@ -90,7 +90,7 @@
         window.appendToResults = function(text) {
             const resultsElement = document.getElementById('results');
             if (resultsElement) {
-                resultsElement.innerHTML += text.replace(/\n/g, '<br>');
+                resultsElement.innerHTML += text + '<br><br>';  // Add two line breaks after each append
                 resultsElement.scrollTop = resultsElement.scrollHeight;
             } else {
                 console.log(text);
@@ -98,13 +98,13 @@
         }        
 
         function checkMaps() {
-            document.getElementById('results').textContent = 'Checking maps...\n';
+            document.getElementById('results').innerHTML = 'Checking maps...<br><br>';
             document.getElementById('resultsContainer').style.display = 'block';
             checkAllMaps().then(() => {
                 console.log('Map check complete');
             }).catch(error => {
                 console.error('Error checking maps:', error);
-                appendToResults('An error occurred while checking maps: ' + error.message + '\n');
+                appendToResults('An error occurred while checking maps: ' + error.message);
             });
         }
 
