@@ -59,14 +59,14 @@ async function checkSpecificMap(mapId) {
     if (isAccessible) {
         const mapData = result;
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`\nMap Title: ${mapTitle}\n`);
+        appendToResults(`<br><span class="rtl">Map Title: ${mapTitle}</span><br><br>`);
         
         let allLayersOk = true;
         const problematicLayers = [];
         
         // Check basemaps
         const basemaps = mapData.baseMap?.baseMapLayers || [];
-        appendToResults("\nChecking Basemaps:");
+        appendToResults("<br>Checking Basemaps:");
         for (const basemap of basemaps) {
             if (!await checkLayer(basemap, "  ")) {
                 allLayersOk = false;
@@ -75,7 +75,7 @@ async function checkSpecificMap(mapId) {
         }
         
         // Check operational layers
-        appendToResults("\nChecking Operational Layers:");
+        appendToResults("<br>Checking Operational Layers:");
         const operationalLayers = mapData.operationalLayers || [];
         for (const layer of operationalLayers) {
             if (!await checkLayer(layer)) {
@@ -113,19 +113,19 @@ async function checkAllMaps() {
         }
     }
 
-    appendToResults("\n" + "=".repeat(50));
+    appendToResults("<br>" + "=".repeat(50));
     if (allMapsOk) {
         appendToResults(" ALL MAPS AND LAYERS ARE ACCESSIBLE! :) ");
     } else {
         appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!");
         for (const { mapTitle, problematicLayers } of mapsWithErrors) {
-            appendToResults(`  :${mapTitle}:`);
+            appendToResults(`<span class="rtl">  :${mapTitle}:</span>`);
             for (const layer of problematicLayers) {
-                appendToResults(`     ${layer} * `);
+                appendToResults(`<span class="rtl">     ${layer} * </span>`);
             }
         }
     }
-    appendToResults("=".repeat(50) + "\n");
+    appendToResults("=".repeat(50) + "<br>");
 }
 
 function checkMaps() {
