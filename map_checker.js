@@ -78,7 +78,7 @@ async function checkSpecificMap(mapId) {
         appendToResults("<br>Checking Operational Layers:");
         const operationalLayers = mapData.operationalLayers || [];
         for (const layer of operationalLayers) {
-            if (!await checkLayer(layer)) {
+            if (!await checkLayer(layer, "  ")) {
                 allLayersOk = false;
                 problematicLayers.push(layer.title || 'Unnamed Layer');
             }
