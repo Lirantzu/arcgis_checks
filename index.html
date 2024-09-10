@@ -89,9 +89,13 @@
     <script>
         window.appendToResults = function(text) {
             const resultsElement = document.getElementById('results');
+            const resultsContainer = document.getElementById('resultsContainer');
             if (resultsElement) {
-                resultsElement.innerHTML += text + '<br><br>';  // Add two line breaks after each append
-                resultsElement.scrollTop = resultsElement.scrollHeight;
+                resultsElement.innerHTML += text + '<br><br>';
+                // Delay the scroll to ensure the content is rendered
+                setTimeout(() => {
+                    resultsContainer.scrollTop = resultsContainer.scrollHeight;
+                }, 0);
             } else {
                 console.log(text);
             }
