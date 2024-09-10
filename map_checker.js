@@ -120,14 +120,34 @@ async function checkAllMaps() {
     }
     finalMessage += "<hr>";
 
-    // Update the results widget in the Experience Builder app
-    const resultsWidget = document.getElementById('resultsWidget');
-    if (resultsWidget) {
-        resultsWidget.innerHTML = finalMessage;
-    } else {
-        alert("Results widget not found. Please check the browser console for results.");
-        console.log(finalMessage);
+    // Create or update the results display
+    let resultsDisplay = document.getElementById('mapCheckResults');
+    if (!resultsDisplay) {
+        resultsDisplay = document.createElement('div');
+        resultsDisplay.id = 'mapCheckResults';
+        resultsDisplay.style.position = 'fixed';
+        resultsDisplay.style.top = '10%';
+        resultsDisplay.style.left = '10%';
+        resultsDisplay.style.width = '80%';
+        resultsDisplay.style.maxHeight = '80%';
+        resultsDisplay.style.overflowY = 'auto';
+        resultsDisplay.style.backgroundColor = 'white';
+        resultsDisplay.style.border = '1px solid black';
+        resultsDisplay.style.padding = '20px';
+        resultsDisplay.style.zIndex = '1000';
+        document.body.appendChild(resultsDisplay);
     }
+    resultsDisplay.innerHTML = finalMessage;
+    resultsDisplay.style.display = 'block';
+
+    // Add a close button
+    let closeButton = document.createElement('button');
+    closeButton.textContent = 'Close';
+    closeButton.style.marginTop = '10px';
+    closeButton.onclick = function() {
+        resultsDisplay.style.display = 'none';
+    };
+    resultsDisplay.appendChild(closeButton);
 }
 
 // Run the check when the script is loaded
