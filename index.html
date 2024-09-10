@@ -44,10 +44,10 @@
             width: 80%;
             height: 60%;
             background-color: rgba(0, 0, 0, 0.9);
-            border: 2px solid #00FF00;
+            border: 1px solid #00FF00;
             padding: 20px;
             overflow: auto;
-            box-shadow: 0 0 20px #00FF00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
         }
         #results {
             font-family: 'Courier New', monospace;
@@ -99,6 +99,17 @@
 
         function closeResults() {
             document.getElementById('resultsContainer').style.display = 'none';
+        }
+
+        // Override the appendToResults function to auto-scroll
+        function appendToResults(text) {
+            const resultsElement = document.getElementById('results');
+            if (resultsElement) {
+                resultsElement.innerHTML += text;
+                resultsElement.scrollTop = resultsElement.scrollHeight;
+            } else {
+                console.log(text);
+            }
         }
 
         // Matrix-like rain effect
