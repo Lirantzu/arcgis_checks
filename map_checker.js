@@ -25,7 +25,7 @@ async function testService(url) {
 
 function appendToResults(text) {
     if (window.appendToResults) {
-        window.appendToResults(text);
+        window.appendToResults(text + '\n');  // Add newline after each append
     } else {
         console.log(text);
     }
