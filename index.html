@@ -89,12 +89,12 @@
         window.appendToResults = function(text) {
             const resultsElement = document.getElementById('results');
             if (resultsElement) {
-                resultsElement.textContent += text;
+                resultsElement.innerHTML += text.replace(/\n/g, '<br>');
                 resultsElement.scrollTop = resultsElement.scrollHeight;
             } else {
                 console.log(text);
             }
-        }
+        }        
 
         function checkMaps() {
             document.getElementById('results').textContent = 'Checking maps...\n';
