@@ -59,7 +59,7 @@ async function checkSpecificMap(mapId) {
     if (isAccessible) {
         const mapData = result;
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`<br><span class="rtl">Map Title: ${mapTitle}</span><br><br>`);
+        appendToResults(`<br><span class="rtl">Map Title: ${mapTitle}</span>`);
         
         let allLayersOk = true;
         const problematicLayers = [];
