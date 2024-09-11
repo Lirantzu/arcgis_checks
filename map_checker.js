@@ -23,24 +23,24 @@ async function testService(url) {
     }
 }
 
-function appendToResults(text) {
-    if (window.opener && window.opener.appendToResults) {
-        window.opener.appendToResults(text);
+function appendToResults(text, newWindow) {
+    if (newWindow && newWindow.appendToResults) {
+        newWindow.appendToResults(text);
     } else {
         console.log(text);
     }
 }
 
-async function checkLayer(layer, indent = "") {
+async function checkLayer(layer, indent = "", newWindow) {
     const layerTitle = layer.title || `id: ${layer.id || 'Unnamed Layer'}`;
     const layerUrl = layer.url;
     
     if (layer.layers || layer.layerGroups) {  // This is a group layer
-        appendToResults(`${indent}Group: '${layerTitle}'`);
+        appendToResults(`${indent}Group: '${layerTitle}'`, newWindow);
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
         for (const sublayer of sublayers) {
-            if (!await checkLayer(sublayer, indent + "  ")) {
+            if (!await checkLayer(sublayer, indent + "  ", newWindow)) {
                 allSublayersOk = false;
             }
         }
@@ -48,45 +48,45 @@ async function checkLayer(layer, indent = "") {
     } else if (layerUrl) {
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
-            appendToResults(`${indent}Layer '${layerTitle}' is accessible and valid.`);
+            appendToResults(`${indent}Layer '${layerTitle}' is accessible and valid.`, newWindow);
             return true;
         } else {
-            appendToResults(`${indent}Layer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`);
+            appendToResults(`${indent}Layer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`, newWindow);
             return false;
         }
     } else {
-        appendToResults(`${indent}Layer '${layerTitle}' - No URL found for the layer.      <<<<<<<<<< Error`);
+        appendToResults(`${indent}Layer '${layerTitle}' - No URL found for the layer.      <<<<<<<<<< Error`, newWindow);
         return false;
     }
 }
 
-async function checkSpecificMap(mapId) {
+async function checkSpecificMap(mapId, newWindow) {
     const mapUrl = baseUrl.replace('{mapId}', mapId);
-    appendToResults(`Fetching JSON data from URL: ${mapUrl}`);
+    appendToResults(`Fetching JSON data from URL: ${mapUrl}`, newWindow);
     const { isAccessible, result } = await testService(mapUrl);
     if (isAccessible) {
         const mapData = result;
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`Map Title: ${mapTitle}`);
+        appendToResults(`Map Title: ${mapTitle}`, newWindow);
         
         let allLayersOk = true;
         const problematicLayers = [];
         
         // Check basemaps
         const basemaps = mapData.baseMap?.baseMapLayers || [];
-        appendToResults("Checking Basemaps:");
+        appendToResults("Checking Basemaps:", newWindow);
         for (const basemap of basemaps) {
-            if (!await checkLayer(basemap, "  ")) {
+            if (!await checkLayer(basemap, "  ", newWindow)) {
                 allLayersOk = false;
                 problematicLayers.push(`Basemap: ${basemap.title || 'Unnamed Basemap'}`);
             }
         }
         
         // Check operational layers
-        appendToResults("Checking Operational Layers:");
+        appendToResults("Checking Operational Layers:", newWindow);
         const operationalLayers = mapData.operationalLayers || [];
         for (const layer of operationalLayers) {
-            if (!await checkLayer(layer, "  ")) {
+            if (!await checkLayer(layer, "  ", newWindow)) {
                 allLayersOk = false;
                 problematicLayers.push(layer.title || 'Unnamed Layer');
             }
@@ -94,34 +94,34 @@ async function checkSpecificMap(mapId) {
         
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
-        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`);
+        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, newWindow);
         return { allLayersOk: false, mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: [] };
     }
 }
 
-async function checkAllMaps() {
+async function checkAllMaps(newWindow) {
     const mapsWithErrors = [];
     let allMapsOk = true;
 
     for (const mapId of mapIds) {
-        const { allLayersOk, mapTitle, problematicLayers } = await checkSpecificMap(mapId);
+        const { allLayersOk, mapTitle, problematicLayers } = await checkSpecificMap(mapId, newWindow);
         if (!allLayersOk) {
             allMapsOk = false;
             mapsWithErrors.push({ mapTitle, problematicLayers });
         }
     }
 
-    appendToResults("\n" + "=".repeat(50));
+    appendToResults("\n" + "=".repeat(50), newWindow);
     if (allMapsOk) {
-        appendToResults(" ALL MAPS AND LAYERS ARE ACCESSIBLE! :) ");
+        appendToResults(" ALL MAPS AND LAYERS ARE ACCESSIBLE! :) ", newWindow);
     } else {
-        appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!");
+        appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!", newWindow);
         for (const { mapTitle, problematicLayers } of mapsWithErrors) {
-            appendToResults(`  :${mapTitle}:`);
+            appendToResults(`  :${mapTitle}:`, newWindow);
             for (const layer of problematicLayers) {
-                appendToResults(`     ${layer} * `);
+                appendToResults(`     ${layer} * `, newWindow);
             }
         }
     }
-    appendToResults("=".repeat(50) + "\n");
+    appendToResults("=".repeat(50) + "\n", newWindow);
 }
