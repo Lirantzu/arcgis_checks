@@ -24,8 +24,8 @@ async function testService(url) {
 }
 
 function appendToResults(text) {
-    if (window.appendToResults) {
-        window.appendToResults(text);
+    if (window.opener && window.opener.appendToResults) {
+        window.opener.appendToResults(text);
     } else {
         console.log(text);
     }
@@ -124,12 +124,4 @@ async function checkAllMaps() {
         }
     }
     appendToResults("=".repeat(50) + "\n");
-}
-
-// This function is called from the HTML file
-function checkMaps() {
-    checkAllMaps().catch(error => {
-        console.error("An error occurred:", error);
-        appendToResults("An error occurred while checking maps: " + error.message);
-    });
 }
