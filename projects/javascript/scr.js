@@ -1,0 +1,1 @@
+console.log(process.env.PATH.split(';').filter(path => path.toLowerCase().includes('nodejs')));
