@@ -40,71 +40,13 @@
     <h1>Map Checker</h1>
     <button onclick="openMapChecker()">Initialize</button>
 
-    <script src="map_checker.js"></script>
     <script>
         function openMapChecker() {
             const width = 800;
             const height = 600;
             const left = (screen.width - width) / 2;
             const top = (screen.height - height) / 2;
-            const newWindow = window.open('', 'MapChecker', `width=${width},height=${height},left=${left},top=${top}`);
-            
-            newWindow.document.write(`
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Map Checker Results</title>
-                    <style>
-                        body, html {
-                            height: 100%;
-                            margin: 0;
-                            font-family: Arial, sans-serif;
-                            background-color: #000;
-                            color: #FFF;
-                            display: flex;
-                            flex-direction: column;
-                            padding: 20px;
-                            box-sizing: border-box;
-                        }
-                        #results {
-                            flex-grow: 1;
-                            overflow: auto;
-                            white-space: pre-wrap;
-                            word-wrap: break-word;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div id="results"></div>
-                    <script>
-                        window.appendToResults = function(text) {
-                            const resultsElement = document.getElementById('results');
-                            if (resultsElement) {
-                                resultsElement.innerHTML += text + '<br><br>';
-                                resultsElement.scrollTop = resultsElement.scrollHeight;
-                            } else {
-                                console.log(text);
-                            }
-                        }
-                    </script>
-                </body>
-                </html>
-            `);
-            
-            newWindow.document.close();
-
-            // Wait for the new window to load before running the check
-            newWindow.onload = function() {
-                newWindow.appendToResults('Checking maps...<br><br>');
-                checkAllMaps(newWindow).then(() => {
-                    console.log('Map check complete');
-                }).catch(error => {
-                    console.error('Error checking maps:', error);
-                    newWindow.appendToResults('An error occurred while checking maps: ' + error.message);
-                });
-            };
+            window.open('map_checker_window.html', 'MapChecker', `width=${width},height=${height},left=${left},top=${top}`);
         }
     </script>
 </body>
