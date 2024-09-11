@@ -34,45 +34,6 @@
             background-color: #FFF;
             color: #000;
         }
-        #resultsContainer {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            height: 60%;
-            background-color: rgba(0, 0, 0, 0.9);
-            border: 1px solid #FFF;
-            padding: 20px;
-            overflow: auto;
-        }
-        #results {
-            font-family: Arial, sans-serif;
-            color: #FFF;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .rtl {
-            direction: rtl;
-            unicode-bidi: bidi-override;
-            text-align: right;
-            display: inline-block;
-        }
-        pre {
-            margin: 0;
-            font-family: inherit;
-        }
-        #closeButton {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: #FFF;
-            font-size: 1.5em;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -132,13 +93,18 @@
                 </html>
             `);
             
-            newWindow.appendToResults('Checking maps...<br><br>');
-            checkAllMaps().then(() => {
-                console.log('Map check complete');
-            }).catch(error => {
-                console.error('Error checking maps:', error);
-                newWindow.appendToResults('An error occurred while checking maps: ' + error.message);
-            });
+            newWindow.document.close();
+
+            // Wait for the new window to load before running the check
+            newWindow.onload = function() {
+                newWindow.appendToResults('Checking maps...<br><br>');
+                checkAllMaps(newWindow).then(() => {
+                    console.log('Map check complete');
+                }).catch(error => {
+                    console.error('Error checking maps:', error);
+                    newWindow.appendToResults('An error occurred while checking maps: ' + error.message);
+                });
+            };
         }
     </script>
 </body>
