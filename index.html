@@ -8,9 +8,9 @@
         body, html {
             height: 100%;
             margin: 0;
-            font-family: 'Courier New', monospace;
+            font-family: Arial, sans-serif;
             background-color: #000;
-            color: #00FF00;
+            color: #FFF;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,19 +20,18 @@
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
         }
         button {
             background-color: #000;
-            color: #00FF00;
-            border: 2px solid #00FF00;
+            color: #FFF;
+            border: 2px solid #FFF;
             padding: 10px 20px;
             font-size: 1.2em;
             cursor: pointer;
             transition: all 0.3s;
         }
         button:hover {
-            background-color: #00FF00;
+            background-color: #FFF;
             color: #000;
         }
         #resultsContainer {
@@ -44,14 +43,13 @@
             width: 80%;
             height: 60%;
             background-color: rgba(0, 0, 0, 0.9);
-            border: 1px solid #00FF00;
+            border: 1px solid #FFF;
             padding: 20px;
             overflow: auto;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
         }
         #results {
-            font-family: 'Courier New', monospace;
-            color: #FFFF00;
+            font-family: Arial, sans-serif;
+            color: #FFF;
             white-space: pre-wrap;
             word-wrap: break-word;
         }
@@ -71,7 +69,7 @@
             right: 10px;
             background: none;
             border: none;
-            color: #00FF00;
+            color: #FFF;
             font-size: 1.5em;
             cursor: pointer;
         }
@@ -79,81 +77,69 @@
 </head>
 <body>
     <h1>Map Checker</h1>
-    <button onclick="checkMaps()">Initialize</button>
-    <div id="resultsContainer">
-        <button id="closeButton" onclick="closeResults()">X</button>
-        <div id="results"></div>
-    </div>
+    <button onclick="openMapChecker()">Initialize</button>
 
     <script src="map_checker.js"></script>
     <script>
-        window.appendToResults = function(text) {
-            const resultsElement = document.getElementById('results');
-            const resultsContainer = document.getElementById('resultsContainer');
-            if (resultsElement) {
-                resultsElement.innerHTML += text + '<br><br>';
-                // Delay the scroll to ensure the content is rendered
-                setTimeout(() => {
-                    resultsContainer.scrollTop = resultsContainer.scrollHeight;
-                }, 0);
-            } else {
-                console.log(text);
-            }
-        }        
-
-        function checkMaps() {
-            document.getElementById('results').innerHTML = 'Checking maps...<br><br>';
-            document.getElementById('resultsContainer').style.display = 'block';
+        function openMapChecker() {
+            const width = 800;
+            const height = 600;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            const newWindow = window.open('', 'MapChecker', `width=${width},height=${height},left=${left},top=${top}`);
+            
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Map Checker Results</title>
+                    <style>
+                        body, html {
+                            height: 100%;
+                            margin: 0;
+                            font-family: Arial, sans-serif;
+                            background-color: #000;
+                            color: #FFF;
+                            display: flex;
+                            flex-direction: column;
+                            padding: 20px;
+                            box-sizing: border-box;
+                        }
+                        #results {
+                            flex-grow: 1;
+                            overflow: auto;
+                            white-space: pre-wrap;
+                            word-wrap: break-word;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div id="results"></div>
+                    <script>
+                        window.appendToResults = function(text) {
+                            const resultsElement = document.getElementById('results');
+                            if (resultsElement) {
+                                resultsElement.innerHTML += text + '<br><br>';
+                                resultsElement.scrollTop = resultsElement.scrollHeight;
+                            } else {
+                                console.log(text);
+                            }
+                        }
+                    </script>
+                </body>
+                </html>
+            `);
+            
+            newWindow.appendToResults('Checking maps...<br><br>');
             checkAllMaps().then(() => {
                 console.log('Map check complete');
             }).catch(error => {
                 console.error('Error checking maps:', error);
-                appendToResults('An error occurred while checking maps: ' + error.message);
+                newWindow.appendToResults('An error occurred while checking maps: ' + error.message);
             });
         }
-
-        function closeResults() {
-            document.getElementById('resultsContainer').style.display = 'none';
-        }
-
-        // Matrix-like rain effect
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        document.body.appendChild(canvas);
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        canvas.style.position = 'fixed';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.zIndex = '-1';
-
-        const columns = canvas.width / 20;
-        const drops = [];
-
-        for (let i = 0; i < columns; i++) {
-            drops[i] = 1;
-        }
-
-        function draw() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#00FF00';
-            ctx.font = '15px monospace';
-
-            for (let i = 0; i < drops.length; i++) {
-                const text = String.fromCharCode(Math.random() * 128);
-                ctx.fillText(text, i * 20, drops[i] * 20);
-
-                if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
-        }
-
-        setInterval(draw, 33);
     </script>
 </body>
 </html>
