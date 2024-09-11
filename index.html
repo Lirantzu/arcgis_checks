@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Checker</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #FFF;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 20vh;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #000;
+            color: #FFF;
+            border: 2px solid #FFF;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #FFF;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Map Checker</h1>
+    <button onclick="openMapChecker()">Initialize</button>
+
+    <script>
+        function openMapChecker() {
+            const width = 800;
+            const height = 600;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            window.open('map_checker_window.html', 'MapChecker', `width=${width},height=${height},left=${left},top=${top}`);
+        }
+    </script>
+</body>
+</html>
