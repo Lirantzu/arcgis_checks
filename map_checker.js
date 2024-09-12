@@ -16,7 +16,12 @@ const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{map
 
 async function testService(url) {
     try {
-        const response = await fetch(`${url}?f=json`, { timeout: 15000 });
+        const response = await fetch(url, { 
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'include',
+            timeout: 15000 
+        });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         if (data.error) {
@@ -86,17 +91,26 @@ async function checkLayer(layer, indent = "") {
 }
 
 async function checkSpecificMap(mapId) {
-    const mapUrl = baseUrl.replace('{mapId}', mapId);
+    let mapUrl;
+    let mapTitle;
+
+    if (typeof mapNames[mapId] === 'object' && mapNames[mapId].isPortal) {
+        mapUrl = `https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/${mapId}/data?f=json`;
+        mapTitle = mapNames[mapId].name;
+    } else {
+        mapUrl = baseUrl.replace('{mapId}', mapId);
+        mapTitle = mapNames[mapId] || 'Unnamed Map';
+    }
+
     appendToResults(`Fetching JSON data from URL: `, 'important');
     appendToResults(mapUrl, 'url');
     const { isAccessible, result } = await testService(mapUrl);
     if (isAccessible) {
         const mapData = result;
-        const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`\n`, 'separator'); // New line before map title
+        appendToResults(`\n`, 'separator');
         appendToResults(`Map Title: `, 'map-title');
         appendToResults(mapTitle, 'important');
-        appendToResults(`\n`, 'separator'); // New line after map title
+        appendToResults(`\n`, 'separator');
         
         let allLayersOk = true;
         const problematicLayers = [];
@@ -124,7 +138,7 @@ async function checkSpecificMap(mapId) {
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
         appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, 'error');
-        appendToResults('\n'); // Add a line break after the error message
+        appendToResults('\n');
         return { allLayersOk: false, mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: [] };
     }
 }
