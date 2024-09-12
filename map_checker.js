@@ -79,35 +79,44 @@ async function checkLayer(layer, indent = "") {
         }
         return allSublayersOk;
     } else if (layerUrl) {
+        appendToResults(`${indent}Checking Layer: `, 'operational-layer');
+        appendToResults(`'${layerTitle}'`, 'important');
+        appendToResults(` (URL: `, 'operational-layer');
+        appendToResults(layerUrl, 'url');
+        appendToResults(`)`, 'operational-layer');
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
-            appendToResults(`${indent}Layer '${layerTitle}' is accessible and valid.`);
+            appendToResults(`\n${indent}  Status: Accessible`, 'success');
             return true;
         } else {
-            appendToResults(`${indent}Layer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`);
+            appendToResults(`\n${indent}  Status: Not accessible`, 'error');
+            appendToResults(`\n${indent}  Error: ${result}`, 'error');
             return false;
         }
     } else {
-        appendToResults(`${indent}Layer '${layerTitle}' - No URL found. Unable to check accessibility.`);
-        return true;  // We can't check it, but we don't want to flag it as an error
+        appendToResults(`${indent}Layer: `, 'operational-layer');
+        appendToResults(`'${layerTitle}'`, 'important');
+        appendToResults(` - No URL found. Unable to check accessibility.`, 'warning');
+        return true;
     }
 }
 
 async function checkSpecificMap(mapId) {
     const mapUrl = baseUrl.replace('{mapId}', mapId);
-    appendToResults(`Fetching JSON data from URL: ${mapUrl}`);
+    appendToResults(`Fetching JSON data from URL: `, 'important');
+    appendToResults(mapUrl, 'url');
     const { isAccessible, result } = await testService(mapUrl);
     if (isAccessible) {
         const mapData = result;
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`Map Title: ${mapTitle}`);
+        appendToResults(`\nMap Title: `, 'map-title');
+        appendToResults(mapTitle, 'important');
         
         let allLayersOk = true;
         const problematicLayers = [];
         
-        // Check basemaps
+        appendToResults("\nChecking Basemaps:", 'basemap');
         const basemaps = mapData.baseMap?.baseMapLayers || [];
-        appendToResults("Checking Basemaps:");
         for (const basemap of basemaps) {
             if (!await checkLayer(basemap, "  ")) {
                 allLayersOk = false;
@@ -115,8 +124,7 @@ async function checkSpecificMap(mapId) {
             }
         }
         
-        // Check operational layers
-        appendToResults("Checking Operational Layers:");
+        appendToResults("\nChecking Operational Layers:", 'operational-layer');
         const operationalLayers = mapData.operationalLayers || [];
         for (const layer of operationalLayers) {
             if (!await checkLayer(layer, "  ")) {
@@ -127,7 +135,7 @@ async function checkSpecificMap(mapId) {
         
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
-        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`);
+        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, 'error');
         return { allLayersOk: false, mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: [] };
     }
 }
@@ -142,19 +150,19 @@ async function checkAllMaps() {
             allMapsOk = false;
             mapsWithErrors.push({ mapTitle, problematicLayers });
         }
+        appendToResults("\n" + "=".repeat(50) + "\n", 'separator');
     }
 
-    appendToResults("\n" + "=".repeat(50));
     if (allMapsOk) {
-        appendToResults(" ALL MAPS AND LAYERS ARE ACCESSIBLE! :) ");
+        appendToResults(" ALL MAPS AND LAYERS ARE ACCESSIBLE! :) ", 'success');
     } else {
-        appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!");
+        appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!", 'error');
         for (const { mapTitle, problematicLayers } of mapsWithErrors) {
-            appendToResults(`  :${mapTitle}:`);
+            appendToResults(`  :${mapTitle}:`, 'map-title');
             for (const layer of problematicLayers) {
-                appendToResults(`     ${layer} * `);
+                appendToResults(`     ${layer} * `, 'error');
             }
         }
     }
-    appendToResults("=".repeat(50) + "\n");
+    appendToResults("\n" + "=".repeat(50) + "\n", 'separator');
 }
