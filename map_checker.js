@@ -3,7 +3,7 @@ const mapNames = {
     // Example entries, replace with actual map IDs and names
     "0e3643433dfd4039b1bd83488c4618dc": "הפקעות מטרו",
     "0171927ba282497aad1579c62b8c95b1": "גבולות עבודה נתע",
-    // "3a64f1a338b64c1da39556f363321000": "אפליקציה חיצונית",
+    "3a64f1a338b64c1da39556f363321000": "אפליקציה חיצונית",
 };
 
 const mapIds = Object.keys(mapNames);
