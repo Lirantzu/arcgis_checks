@@ -7,8 +7,10 @@ const mapNames = {
     "b9926cc754f645a9bb72bdea824f5be9": "אפליקציית סקרי עצים",
     "f3286b9e33a14add8f7c7296fa670caf": "מרחקי השפעה - תמא 70",
     "7e445c19c3964444ad3086ca350359e2": "מגרשים חופפים למסילות צד",
-    "9ad9f3c465964920a65b57f000c647f4": "תתל 133 - מסילות 5 ו-6",
-   
+    "9ad9f3c465964920a65b57f000c647f4": {
+        name: "תתל 133 - מסילות 5 ו-6",
+        portalUrl: "https://gisportal02.tlv.gov.il/portal"
+    }
 };
 
 const mapIds = Object.keys(mapNames);
@@ -16,7 +18,12 @@ const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{map
 
 async function testService(url) {
     try {
-        const response = await fetch(`${url}?f=json`, { timeout: 15000 });
+        const response = await fetch(url, { 
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'include',
+            timeout: 15000 
+        });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         if (data.error) {
@@ -86,17 +93,25 @@ async function checkLayer(layer, indent = "") {
 }
 
 async function checkSpecificMap(mapId) {
-    const mapUrl = baseUrl.replace('{mapId}', mapId);
+    let mapUrl;
+    let mapTitle;
+    if (typeof mapNames[mapId] === 'object' && mapNames[mapId].portalUrl) {
+        mapUrl = `${mapNames[mapId].portalUrl}/sharing/rest/content/items/${mapId}/data?f=json`;
+        mapTitle = mapNames[mapId].name;
+    } else {
+        mapUrl = baseUrl.replace('{mapId}', mapId);
+        mapTitle = mapNames[mapId] || 'Unnamed Map';
+    }
+
     appendToResults(`Fetching JSON data from URL: `, 'important');
     appendToResults(mapUrl, 'url');
     const { isAccessible, result } = await testService(mapUrl);
     if (isAccessible) {
         const mapData = result;
-        const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`\n`, 'separator'); // New line before map title
+        appendToResults(`\n`, 'separator');
         appendToResults(`Map Title: `, 'map-title');
         appendToResults(mapTitle, 'important');
-        appendToResults(`\n`, 'separator'); // New line after map title
+        appendToResults(`\n`, 'separator');
         
         let allLayersOk = true;
         const problematicLayers = [];
@@ -124,8 +139,8 @@ async function checkSpecificMap(mapId) {
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
         appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, 'error');
-        appendToResults('\n'); // Add a line break after the error message
-        return { allLayersOk: false, mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: [] };
+        appendToResults('\n');
+        return { allLayersOk: false, mapTitle, problematicLayers: [] };
     }
 }
 
