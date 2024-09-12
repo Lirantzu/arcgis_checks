@@ -34,19 +34,44 @@
             background-color: #FFF;
             color: #000;
         }
+        #results {
+            margin-top: 20px;
+            width: 80%;
+            height: 300px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #FFF;
+            padding: 10px;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
     <h1>Map Checker</h1>
-    <button onclick="openMapChecker()">Initialize</button>
+    <button onclick="checkMaps()">Initialize</button>
+    <div id="results"></div>
 
+    <script src="map_checker.js"></script>
     <script>
-        function openMapChecker() {
-            const width = 800;
-            const height = 600;
-            const left = (screen.width - width) / 2;
-            const top = (screen.height - height) / 2;
-            window.open('map_checker_window.html', 'MapChecker', `width=${width},height=${height},left=${left},top=${top}`);
+        function appendToResults(text) {
+            const resultsElement = document.getElementById('results');
+            if (resultsElement) {
+                resultsElement.innerHTML += text + '<br><br>';
+                resultsElement.scrollTop = resultsElement.scrollHeight;
+            } else {
+                console.log(text);
+            }
+        }
+
+        function checkMaps() {
+            appendToResults('Checking maps...<br><br>');
+            checkAllMaps().then(() => {
+                console.log('Map check complete');
+            }).catch(error => {
+                console.error('Error checking maps:', error);
+                appendToResults('An error occurred while checking maps: ' + error.message);
+            });
         }
     </script>
 </body>
