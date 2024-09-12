@@ -36,7 +36,7 @@
         }
         #results {
             margin-top: 20px;
-            width: 100%;
+            width: 80%;
             height: 300px;
             overflow: auto;
             white-space: pre-wrap;
@@ -66,7 +66,7 @@
 
         function checkMaps() {
             appendToResults('Checking maps...<br><br>');
-            checkAllMaps(window).then(() => {
+            checkAllMaps().then(() => {
                 console.log('Map check complete');
             }).catch(error => {
                 console.error('Error checking maps:', error);
@@ -76,8 +76,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-

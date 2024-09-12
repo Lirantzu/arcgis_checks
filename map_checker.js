@@ -3,7 +3,7 @@ const mapNames = {
     // Example entries, replace with actual map IDs and names
     "0e3643433dfd4039b1bd83488c4618dc": "הפקעות מטרו",
     "0171927ba282497aad1579c62b8c95b1": "גבולות עבודה נתע",
-    "3a64f1a338b64c1da39556f363321000": "אפליקציה חיצונית",
+    // "3a64f1a338b64c1da39556f363321000": "אפליקציה חיצונית",
 };
 
 const mapIds = Object.keys(mapNames);
@@ -23,15 +23,7 @@ async function testService(url) {
     }
 }
 
-function appendToResults(text, newWindow) {
-    if (newWindow && newWindow.appendToResults) {
-        newWindow.appendToResults(text);
-    } else {
-        console.log(text);
-    }
-}
-
-async function checkVectorTileLayer(layer, indent = "", newWindow) {
+async function checkVectorTileLayer(layer, indent = "") {
     const layerTitle = layer.title || 'Unnamed VectorTileLayer';
     const styleUrl = layer.styleUrl;
 
@@ -39,10 +31,10 @@ async function checkVectorTileLayer(layer, indent = "", newWindow) {
         // Check the style URL
         const { isAccessible, result } = await testService(styleUrl);
         if (isAccessible) {
-            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is accessible (style URL verified).`, newWindow);
+            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is accessible (style URL verified).`);
             return true;
         } else {
-            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`, newWindow);
+            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`);
             return false;
         }
     } else {
@@ -50,29 +42,29 @@ async function checkVectorTileLayer(layer, indent = "", newWindow) {
         const serviceUrl = `https://tiles.arcgis.com/tiles/PcGFyTym9yKZBRgz/arcgis/rest/services/${layerTitle}/VectorTileServer`;
         const { isAccessible, result } = await testService(serviceUrl);
         if (isAccessible) {
-            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is accessible (service URL verified).`, newWindow);
+            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is accessible (service URL verified).`);
             return true;
         } else {
-            appendToResults(`${indent}VectorTileLayer '${layerTitle}' might not be accessible. Error: ${result}      <<<<<<<<<< Warning`, newWindow);
+            appendToResults(`${indent}VectorTileLayer '${layerTitle}' might not be accessible. Error: ${result}      <<<<<<<<<< Warning`);
             return false;
         }
     }
 }
 
-async function checkLayer(layer, indent = "", newWindow) {
+async function checkLayer(layer, indent = "") {
     const layerTitle = layer.title || `id: ${layer.id || 'Unnamed Layer'}`;
     const layerUrl = layer.url;
     
     if (layer.layerType === "VectorTileLayer") {
-        return await checkVectorTileLayer(layer, indent, newWindow);
+        return await checkVectorTileLayer(layer, indent);
     }
     
     if (layer.layers || layer.layerGroups) {  // This is a group layer
-        appendToResults(`${indent}Group: '${layerTitle}'`, newWindow);
+        appendToResults(`${indent}Group: '${layerTitle}'`);
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
         for (const sublayer of sublayers) {
-            if (!await checkLayer(sublayer, indent + "  ", newWindow)) {
+            if (!await checkLayer(sublayer, indent + "  ")) {
                 allSublayersOk = false;
             }
         }
@@ -80,45 +72,45 @@ async function checkLayer(layer, indent = "", newWindow) {
     } else if (layerUrl) {
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
-            appendToResults(`${indent}Layer '${layerTitle}' is accessible and valid.`, newWindow);
+            appendToResults(`${indent}Layer '${layerTitle}' is accessible and valid.`);
             return true;
         } else {
-            appendToResults(`${indent}Layer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`, newWindow);
+            appendToResults(`${indent}Layer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`);
             return false;
         }
     } else {
-        appendToResults(`${indent}Layer '${layerTitle}' - No URL found. Unable to check accessibility.`, newWindow);
+        appendToResults(`${indent}Layer '${layerTitle}' - No URL found. Unable to check accessibility.`);
         return true;  // We can't check it, but we don't want to flag it as an error
     }
 }
 
-async function checkSpecificMap(mapId, newWindow) {
+async function checkSpecificMap(mapId) {
     const mapUrl = baseUrl.replace('{mapId}', mapId);
-    appendToResults(`Fetching JSON data from URL: ${mapUrl}`, newWindow);
+    appendToResults(`Fetching JSON data from URL: ${mapUrl}`);
     const { isAccessible, result } = await testService(mapUrl);
     if (isAccessible) {
         const mapData = result;
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`Map Title: ${mapTitle}`, newWindow);
+        appendToResults(`Map Title: ${mapTitle}`);
         
         let allLayersOk = true;
         const problematicLayers = [];
         
         // Check basemaps
         const basemaps = mapData.baseMap?.baseMapLayers || [];
-        appendToResults("Checking Basemaps:", newWindow);
+        appendToResults("Checking Basemaps:");
         for (const basemap of basemaps) {
-            if (!await checkLayer(basemap, "  ", newWindow)) {
+            if (!await checkLayer(basemap, "  ")) {
                 allLayersOk = false;
                 problematicLayers.push(`Basemap: ${basemap.title || 'Unnamed Basemap'}`);
             }
         }
         
         // Check operational layers
-        appendToResults("Checking Operational Layers:", newWindow);
+        appendToResults("Checking Operational Layers:");
         const operationalLayers = mapData.operationalLayers || [];
         for (const layer of operationalLayers) {
-            if (!await checkLayer(layer, "  ", newWindow)) {
+            if (!await checkLayer(layer, "  ")) {
                 allLayersOk = false;
                 problematicLayers.push(layer.title || 'Unnamed Layer');
             }
@@ -126,34 +118,34 @@ async function checkSpecificMap(mapId, newWindow) {
         
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
-        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, newWindow);
+        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`);
         return { allLayersOk: false, mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: [] };
     }
 }
 
-async function checkAllMaps(newWindow) {
+async function checkAllMaps() {
     const mapsWithErrors = [];
     let allMapsOk = true;
 
     for (const mapId of mapIds) {
-        const { allLayersOk, mapTitle, problematicLayers } = await checkSpecificMap(mapId, newWindow);
+        const { allLayersOk, mapTitle, problematicLayers } = await checkSpecificMap(mapId);
         if (!allLayersOk) {
             allMapsOk = false;
             mapsWithErrors.push({ mapTitle, problematicLayers });
         }
     }
 
-    appendToResults("\n" + "=".repeat(50), newWindow);
+    appendToResults("\n" + "=".repeat(50));
     if (allMapsOk) {
-        appendToResults(" ALL MAPS AND LAYERS ARE ACCESSIBLE! :) ", newWindow);
+        appendToResults(" ALL MAPS AND LAYERS ARE ACCESSIBLE! :) ");
     } else {
-        appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!", newWindow);
+        appendToResults("!!! ERRORS DETECTED IN THE FOLLOWING MAPS: !!!");
         for (const { mapTitle, problematicLayers } of mapsWithErrors) {
-            appendToResults(`  :${mapTitle}:`, newWindow);
+            appendToResults(`  :${mapTitle}:`);
             for (const layer of problematicLayers) {
-                appendToResults(`     ${layer} * `, newWindow);
+                appendToResults(`     ${layer} * `);
             }
         }
     }
-    appendToResults("=".repeat(50) + "\n", newWindow);
+    appendToResults("=".repeat(50) + "\n");
 }
