@@ -8,9 +8,9 @@
         body, html {
             height: 100%;
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #000;
-            color: #FFF;
+            font-family: Consolas, Monaco, 'Courier New', monospace;
+            background-color: #1E1E1E;
+            color: #E0E0E0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,19 +20,20 @@
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
+            color: #03A9F4;
         }
         button {
-            background-color: #000;
-            color: #FFF;
-            border: 2px solid #FFF;
+            background-color: #4CAF50;
+            color: #FFFFFF;
+            border: none;
             padding: 10px 20px;
             font-size: 1.2em;
             cursor: pointer;
             transition: all 0.3s;
+            font-family: inherit;
         }
         button:hover {
-            background-color: #FFF;
-            color: #000;
+            background-color: #45a049;
         }
         #results {
             margin-top: 20px;
@@ -41,10 +42,24 @@
             overflow: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
-            border: 1px solid #FFF;
+            border: 1px solid #616161;
             padding: 10px;
             box-sizing: border-box;
+            font-size: 14px;
+            line-height: 1.5;
         }
+        .success { color: #4CAF50; }
+        .error { color: #F44336; }
+        .warning { color: #FF9800; }
+        .map-title { color: #03A9F4; }
+        .layer-group { color: #9C27B0; }
+        .basemap { color: #009688; }
+        .operational-layer { color: #8BC34A; }
+        .vector-tile-layer { color: #00BCD4; }
+        .url { color: #FFEB3B; }
+        .layer-id { color: #9E9E9E; }
+        .important { color: #FFFFFF; font-weight: bold; }
+        .separator { color: #616161; }
     </style>
 </head>
 <body>
@@ -54,10 +69,10 @@
 
     <script src="map_checker.js"></script>
     <script>
-        function appendToResults(text) {
+        function appendToResults(text, className = '') {
             const resultsElement = document.getElementById('results');
             if (resultsElement) {
-                resultsElement.innerHTML += text + '<br><br>';
+                resultsElement.innerHTML += `<span class="${className}">${text}</span><br>`;
                 resultsElement.scrollTop = resultsElement.scrollHeight;
             } else {
                 console.log(text);
@@ -65,12 +80,12 @@
         }
 
         function checkMaps() {
-            appendToResults('Checking maps...<br><br>');
+            appendToResults('Checking maps...', 'important');
             checkAllMaps().then(() => {
                 console.log('Map check complete');
             }).catch(error => {
                 console.error('Error checking maps:', error);
-                appendToResults('An error occurred while checking maps: ' + error.message);
+                appendToResults('An error occurred while checking maps: ' + error.message, 'error');
             });
         }
     </script>

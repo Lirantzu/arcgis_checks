@@ -27,25 +27,33 @@ async function checkVectorTileLayer(layer, indent = "") {
     const layerTitle = layer.title || 'Unnamed VectorTileLayer';
     const styleUrl = layer.styleUrl;
 
+    appendToResults(`${indent}Checking VectorTileLayer: `, 'vector-tile-layer');
+    appendToResults(`'${layerTitle}'`, 'important');
+
     if (styleUrl) {
-        // Check the style URL
+        appendToResults(` (StyleURL: `, 'vector-tile-layer');
+        appendToResults(styleUrl, 'url');
+        appendToResults(`)`, 'vector-tile-layer');
         const { isAccessible, result } = await testService(styleUrl);
         if (isAccessible) {
-            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is accessible (style URL verified).`);
+            appendToResults(`\n${indent}  Status: Accessible`, 'success');
             return true;
         } else {
-            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`);
+            appendToResults(`\n${indent}  Status: Not accessible`, 'error');
+            appendToResults(`\n${indent}  Error: ${result}`, 'error');
             return false;
         }
     } else {
-        // If there's no styleUrl, we can try to construct a service URL
         const serviceUrl = `https://tiles.arcgis.com/tiles/PcGFyTym9yKZBRgz/arcgis/rest/services/${layerTitle}/VectorTileServer`;
+        appendToResults(`\n${indent}  No StyleURL found. Checking service URL: `, 'warning');
+        appendToResults(serviceUrl, 'url');
         const { isAccessible, result } = await testService(serviceUrl);
         if (isAccessible) {
-            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is accessible (service URL verified).`);
+            appendToResults(`\n${indent}  Status: Accessible`, 'success');
             return true;
         } else {
-            appendToResults(`${indent}VectorTileLayer '${layerTitle}' might not be accessible. Error: ${result}      <<<<<<<<<< Warning`);
+            appendToResults(`\n${indent}  Status: Might not be accessible`, 'warning');
+            appendToResults(`\n${indent}  Error: ${result}`, 'warning');
             return false;
         }
     }
@@ -59,8 +67,9 @@ async function checkLayer(layer, indent = "") {
         return await checkVectorTileLayer(layer, indent);
     }
     
-    if (layer.layers || layer.layerGroups) {  // This is a group layer
-        appendToResults(`${indent}Group: '${layerTitle}'`);
+    if (layer.layers || layer.layerGroups) {
+        appendToResults(`${indent}Group: `, 'layer-group');
+        appendToResults(`'${layerTitle}'`, 'important');
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
         for (const sublayer of sublayers) {
