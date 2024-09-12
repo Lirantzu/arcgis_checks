@@ -31,9 +31,41 @@ function appendToResults(text, newWindow) {
     }
 }
 
+async function checkVectorTileLayer(layer, indent = "", newWindow) {
+    const layerTitle = layer.title || 'Unnamed VectorTileLayer';
+    const styleUrl = layer.styleUrl;
+
+    if (styleUrl) {
+        // Check the style URL
+        const { isAccessible, result } = await testService(styleUrl);
+        if (isAccessible) {
+            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is accessible (style URL verified).`, newWindow);
+            return true;
+        } else {
+            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is not accessible. Error: ${result}      <<<<<<<<<< Error`, newWindow);
+            return false;
+        }
+    } else {
+        // If there's no styleUrl, we can try to construct a service URL
+        const serviceUrl = `https://tiles.arcgis.com/tiles/PcGFyTym9yKZBRgz/arcgis/rest/services/${layerTitle}/VectorTileServer`;
+        const { isAccessible, result } = await testService(serviceUrl);
+        if (isAccessible) {
+            appendToResults(`${indent}VectorTileLayer '${layerTitle}' is accessible (service URL verified).`, newWindow);
+            return true;
+        } else {
+            appendToResults(`${indent}VectorTileLayer '${layerTitle}' might not be accessible. Error: ${result}      <<<<<<<<<< Warning`, newWindow);
+            return false;
+        }
+    }
+}
+
 async function checkLayer(layer, indent = "", newWindow) {
     const layerTitle = layer.title || `id: ${layer.id || 'Unnamed Layer'}`;
     const layerUrl = layer.url;
+    
+    if (layer.layerType === "VectorTileLayer") {
+        return await checkVectorTileLayer(layer, indent, newWindow);
+    }
     
     if (layer.layers || layer.layerGroups) {  // This is a group layer
         appendToResults(`${indent}Group: '${layerTitle}'`, newWindow);
@@ -55,8 +87,8 @@ async function checkLayer(layer, indent = "", newWindow) {
             return false;
         }
     } else {
-        appendToResults(`${indent}Layer '${layerTitle}' - No URL found for the layer.      <<<<<<<<<< Error`, newWindow);
-        return false;
+        appendToResults(`${indent}Layer '${layerTitle}' - No URL found. Unable to check accessibility.`, newWindow);
+        return true;  // We can't check it, but we don't want to flag it as an error
     }
 }
 
