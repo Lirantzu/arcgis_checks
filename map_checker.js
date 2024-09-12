@@ -1,9 +1,7 @@
 // Map names and IDs
 const mapNames = {
-    // Example entries, replace with actual map IDs and names
     "0e3643433dfd4039b1bd83488c4618dc": "הפקעות מטרו",
     "0171927ba282497aad1579c62b8c95b1": "גבולות עבודה נתע",
-    // "3a64f1a338b64c1da39556f363321000": "אפליקציה חיצונית",
 };
 
 const mapIds = Object.keys(mapNames);
@@ -25,37 +23,17 @@ async function testService(url) {
 
 async function checkVectorTileLayer(layer, indent = "") {
     const layerTitle = layer.title || 'Unnamed VectorTileLayer';
-    const styleUrl = layer.styleUrl;
-
     appendToResults(`${indent}Checking VectorTileLayer: `, 'vector-tile-layer');
     appendToResults(`'${layerTitle}'`, 'important');
 
-    if (styleUrl) {
-        appendToResults(` (StyleURL: `, 'vector-tile-layer');
-        appendToResults(styleUrl, 'url');
-        appendToResults(`)`, 'vector-tile-layer');
-        const { isAccessible, result } = await testService(styleUrl);
-        if (isAccessible) {
-            appendToResults(`\n${indent}  Status: Accessible`, 'success');
-            return true;
-        } else {
-            appendToResults(`\n${indent}  Status: Not accessible`, 'error');
-            appendToResults(`\n${indent}  Error: ${result}`, 'error');
-            return false;
-        }
+    const { isAccessible, result } = await testService(layer.styleUrl || `https://tiles.arcgis.com/tiles/PcGFyTym9yKZBRgz/arcgis/rest/services/${layerTitle}/VectorTileServer`);
+    if (isAccessible) {
+        appendToResults(` - Status: Accessible`, 'success');
+        return true;
     } else {
-        const serviceUrl = `https://tiles.arcgis.com/tiles/PcGFyTym9yKZBRgz/arcgis/rest/services/${layerTitle}/VectorTileServer`;
-        appendToResults(`\n${indent}  No StyleURL found. Checking service URL: `, 'warning');
-        appendToResults(serviceUrl, 'url');
-        const { isAccessible, result } = await testService(serviceUrl);
-        if (isAccessible) {
-            appendToResults(`\n${indent}  Status: Accessible`, 'success');
-            return true;
-        } else {
-            appendToResults(`\n${indent}  Status: Might not be accessible`, 'warning');
-            appendToResults(`\n${indent}  Error: ${result}`, 'warning');
-            return false;
-        }
+        appendToResults(` - Status: Not accessible`, 'error');
+        appendToResults(` - Error: ${result}`, 'error');
+        return false;
     }
 }
 
@@ -81,16 +59,13 @@ async function checkLayer(layer, indent = "") {
     } else if (layerUrl) {
         appendToResults(`${indent}Checking Layer: `, 'operational-layer');
         appendToResults(`'${layerTitle}'`, 'important');
-        appendToResults(` (URL: `, 'operational-layer');
-        appendToResults(layerUrl, 'url');
-        appendToResults(`)`, 'operational-layer');
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
-            appendToResults(`\n${indent}  Status: Accessible`, 'success');
+            appendToResults(` - Status: Accessible`, 'success');
             return true;
         } else {
-            appendToResults(`\n${indent}  Status: Not accessible`, 'error');
-            appendToResults(`\n${indent}  Error: ${result}`, 'error');
+            appendToResults(` - Status: Not accessible`, 'error');
+            appendToResults(` - Error: ${result}`, 'error');
             return false;
         }
     } else {
