@@ -73,7 +73,10 @@
         function appendToResults(text, className = '') {
             const resultsElement = document.getElementById('results');
             if (resultsElement) {
-                resultsElement.innerHTML += `<span class="${className}">${text}</span><br>`;
+                const span = document.createElement('span');
+                span.className = className;
+                span.textContent = text;
+                resultsElement.appendChild(span);
                 resultsElement.scrollTop = resultsElement.scrollHeight;
             } else {
                 console.log(text);
@@ -81,6 +84,7 @@
         }
 
         function checkMaps() {
+            document.getElementById('results').innerHTML = ''; // Clear previous results
             appendToResults('Checking maps...', 'important');
             checkAllMaps().then(() => {
                 console.log('Map check complete');

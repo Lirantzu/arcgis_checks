@@ -29,12 +29,12 @@ async function checkVectorTileLayer(layer, indent = "") {
     const { isAccessible, result } = await testService(layer.styleUrl || `https://tiles.arcgis.com/tiles/PcGFyTym9yKZBRgz/arcgis/rest/services/${layerTitle}/VectorTileServer`);
     if (isAccessible) {
         appendToResults(` - Status: Accessible`, 'success');
-        return true;
     } else {
         appendToResults(` - Status: Not accessible`, 'error');
         appendToResults(` - Error: ${result}`, 'error');
-        return false;
     }
+    appendToResults('\n'); // Add a line break after each layer check
+    return isAccessible;
 }
 
 async function checkLayer(layer, indent = "") {
@@ -47,7 +47,7 @@ async function checkLayer(layer, indent = "") {
     
     if (layer.layers || layer.layerGroups) {
         appendToResults(`${indent}Group: `, 'layer-group');
-        appendToResults(`'${layerTitle}'`, 'important');
+        appendToResults(`'${layerTitle}'\n`, 'important');
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
         for (const sublayer of sublayers) {
@@ -62,16 +62,16 @@ async function checkLayer(layer, indent = "") {
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
             appendToResults(` - Status: Accessible`, 'success');
-            return true;
         } else {
             appendToResults(` - Status: Not accessible`, 'error');
             appendToResults(` - Error: ${result}`, 'error');
-            return false;
         }
+        appendToResults('\n'); // Add a line break after each layer check
+        return isAccessible;
     } else {
         appendToResults(`${indent}Layer: `, 'operational-layer');
         appendToResults(`'${layerTitle}'`, 'important');
-        appendToResults(` - No URL found. Unable to check accessibility.`, 'warning');
+        appendToResults(` - No URL found. Unable to check accessibility.\n`, 'warning');
         return true;
     }
 }
