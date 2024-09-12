@@ -86,11 +86,13 @@ async function checkSpecificMap(mapId) {
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
         appendToResults(`\nMap Title: `, 'map-title');
         appendToResults(mapTitle, 'important');
+        appendToResults('\n'); // Add a line break after the map title
         
         let allLayersOk = true;
         const problematicLayers = [];
         
-        appendToResults("\nChecking Basemaps:", 'basemap');
+        appendToResults("Checking Basemaps:", 'basemap');
+        appendToResults('\n'); // Add a line break after "Checking Basemaps"
         const basemaps = mapData.baseMap?.baseMapLayers || [];
         for (const basemap of basemaps) {
             if (!await checkLayer(basemap, "  ")) {
@@ -100,6 +102,7 @@ async function checkSpecificMap(mapId) {
         }
         
         appendToResults("\nChecking Operational Layers:", 'operational-layer');
+        appendToResults('\n'); // Add a line break after "Checking Operational Layers"
         const operationalLayers = mapData.operationalLayers || [];
         for (const layer of operationalLayers) {
             if (!await checkLayer(layer, "  ")) {
@@ -111,6 +114,7 @@ async function checkSpecificMap(mapId) {
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
         appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, 'error');
+        appendToResults('\n'); // Add a line break after the error message
         return { allLayersOk: false, mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: [] };
     }
 }
