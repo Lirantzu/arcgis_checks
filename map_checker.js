@@ -47,7 +47,8 @@ async function checkLayer(layer, indent = "") {
     
     if (layer.layers || layer.layerGroups) {
         appendToResults(`${indent}Group: `, 'layer-group');
-        appendToResults(`'${layerTitle}'\n`, 'important');
+        appendToResults(`'${layerTitle}'`); // Removed 'important' class
+        appendToResults('\n');
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
         for (const sublayer of sublayers) {
@@ -58,7 +59,7 @@ async function checkLayer(layer, indent = "") {
         return allSublayersOk;
     } else if (layerUrl) {
         appendToResults(`${indent}Checking Layer: `, 'operational-layer');
-        appendToResults(`'${layerTitle}'`, 'important');
+        appendToResults(`'${layerTitle}'`); // Removed 'important' class
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
             appendToResults(` - Status: Accessible`, 'success');
@@ -66,12 +67,13 @@ async function checkLayer(layer, indent = "") {
             appendToResults(` - Status: Not accessible`, 'error');
             appendToResults(` - Error: ${result}`, 'error');
         }
-        appendToResults('\n'); // Add a line break after each layer check
+        appendToResults('\n');
         return isAccessible;
     } else {
         appendToResults(`${indent}Layer: `, 'operational-layer');
-        appendToResults(`'${layerTitle}'`, 'important');
-        appendToResults(` - No URL found. Unable to check accessibility.\n`, 'warning');
+        appendToResults(`'${layerTitle}'`); // Removed 'important' class
+        appendToResults(` - No URL found. Unable to check accessibility.`, 'warning');
+        appendToResults('\n');
         return true;
     }
 }
@@ -84,14 +86,15 @@ async function checkSpecificMap(mapId) {
     if (isAccessible) {
         const mapData = result;
         const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`\nMap Title: `, 'map-title');
+        appendToResults(`\n`, 'separator'); // New line before map title
+        appendToResults(`Map Title: `, 'map-title');
         appendToResults(mapTitle, 'important');
-        appendToResults('\n'); // Add a line break after the map title
+        appendToResults(`\n`, 'separator'); // New line after map title
         
         let allLayersOk = true;
         const problematicLayers = [];
         
-        appendToResults("Checking Basemaps:", 'basemap');
+        appendToResults("\nChecking Basemaps:", 'basemap');
         appendToResults('\n'); // Add a line break after "Checking Basemaps"
         const basemaps = mapData.baseMap?.baseMapLayers || [];
         for (const basemap of basemaps) {
