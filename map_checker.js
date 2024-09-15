@@ -1,8 +1,3 @@
-const USERNAME = 'x3967755';
-const PASSWORD = 'Lir728t!';
-const PORTAL_URL = 'https://gisportal02.tlv.gov.il/portal';
-let portalToken = '';
-
 // Map names and IDs
 const mapNames = {
     "3a64f1a338b64c1da39556f363321000": "אפליקציה חיצונית",
@@ -12,62 +7,16 @@ const mapNames = {
     "b9926cc754f645a9bb72bdea824f5be9": "אפליקציית סקרי עצים",
     "f3286b9e33a14add8f7c7296fa670caf": "מרחקי השפעה - תמא 70",
     "7e445c19c3964444ad3086ca350359e2": "מגרשים חופפים למסילות צד",
-    "9ad9f3c465964920a65b57f000c647f4": {
-        name: "תתל 133 - מסילות 5 ו-6",
-        url: "https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/9ad9f3c465964920a65b57f000c647f4/data"
-    },
+    "9ad9f3c465964920a65b57f000c647f4": "תתל 133 - מסילות 5 ו-6",
    
 };
 
 const mapIds = Object.keys(mapNames);
 const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{mapId}/data?f=json";
 
-function getMapUrl(mapId) {
-    if (typeof mapNames[mapId] === 'object' && mapNames[mapId].url) {
-        return mapNames[mapId].url;
-    }
-    return baseUrl.replace('{mapId}', mapId);
-}
-
-async function getPortalToken() {
-    const tokenUrl = `${PORTAL_URL}/sharing/rest/generateToken`;
-    const params = new URLSearchParams({
-        username: USERNAME,
-        password: PASSWORD,
-        referer: window.location.origin,
-        f: 'json',
-        expiration: 60 // Token expiration in minutes
-    });
-
-    try {
-        const response = await fetch(tokenUrl, {
-            method: 'POST',
-            body: params
-        });
-        const data = await response.json();
-        if (data.error) {
-            throw new Error(data.error.message);
-        }
-        return data.token;
-    } catch (error) {
-        console.error('Error getting portal token:', error);
-        throw error;
-    }
-}
-
 async function testService(url) {
     try {
-        let finalUrl = url;
-        if (url.includes(PORTAL_URL)) {
-            if (!portalToken) {
-                portalToken = await getPortalToken();
-            }
-            finalUrl = `${url}${url.includes('?') ? '&' : '?'}token=${portalToken}`;
-        } else if (!url.includes('f=json')) {
-            finalUrl = `${url}${url.includes('?') ? '&' : '?'}f=json`;
-        }
-        
-        const response = await fetch(finalUrl, { timeout: 15000 });
+        const response = await fetch(`${url}?f=json`, { timeout: 15000 });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         if (data.error) {
@@ -137,7 +86,7 @@ async function checkLayer(layer, indent = "") {
 }
 
 async function checkSpecificMap(mapId) {
-    const mapUrl = getMapUrl(mapId);
+    const mapUrl = baseUrl.replace('{mapId}', mapId);
     appendToResults(`Fetching JSON data from URL: `, 'important');
     appendToResults(mapUrl, 'url');
     const { isAccessible, result } = await testService(mapUrl);
