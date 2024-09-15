@@ -7,7 +7,10 @@ const mapNames = {
     "b9926cc754f645a9bb72bdea824f5be9": "אפליקציית סקרי עצים",
     "f3286b9e33a14add8f7c7296fa670caf": "מרחקי השפעה - תמא 70",
     "7e445c19c3964444ad3086ca350359e2": "מגרשים חופפים למסילות צד",
-    "9ad9f3c465964920a65b57f000c647f4": "תתל 133 - מסילות 5 ו-6",
+    "9ad9f3c465964920a65b57f000c647f4": {
+        name: "תתל 133 - מסילות 5 ו-6",
+        url: "https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/9ad9f3c465964920a65b57f000c647f4/data?f=json"
+    },
    
 };
 
@@ -86,7 +89,10 @@ async function checkLayer(layer, indent = "") {
 }
 
 async function checkSpecificMap(mapId) {
-    const mapUrl = baseUrl.replace('{mapId}', mapId);
+    const mapInfo = mapNames[mapId];
+    const mapUrl = typeof mapInfo === 'object' ? mapInfo.url : baseUrl.replace('{mapId}', mapId);
+    const mapTitle = typeof mapInfo === 'object' ? mapInfo.name : mapInfo;
+
     appendToResults(`Fetching JSON data from URL: `, 'important');
     appendToResults(mapUrl, 'url');
     const { isAccessible, result } = await testService(mapUrl);
