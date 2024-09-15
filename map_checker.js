@@ -20,7 +20,7 @@ async function getToken(username, password) {
     const params = new URLSearchParams({
         username: username,
         password: password,
-        referer: "yourAppURL", // Update with your actual app URL or referer
+        referer: "https://Lirantzu.github.io", // Update with your actual app URL or referer
         f: "json"
     });
 
