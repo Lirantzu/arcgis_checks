@@ -63,16 +63,21 @@ async function testService(url) {
         const response = await fetch(finalUrl, { 
             method: 'GET',
             mode: 'cors',
+            headers: {
+                'Accept': 'application/json'
+            },
             timeout: 15000 
         });
         
         console.log(`Response status: ${response.status}`);
         console.log(`Response type: ${response.type}`);
+        console.log('Response headers:', Object.fromEntries(response.headers));
         
         const text = await response.text();
+        console.log(`Response text (first 500 characters): ${text.substring(0, 500)}`);
+        
         if (text.trim().startsWith('<')) {
             console.error('Received HTML instead of JSON');
-            console.error(`HTML content (first 500 characters): ${text.substring(0, 500)}`);
             return { isAccessible: false, result: 'Received HTML instead of JSON', htmlContent: text };
         }
         
