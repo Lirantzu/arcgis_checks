@@ -100,8 +100,42 @@ async function checkSpecificMap(mapId) {
     appendToResults(mapUrl, 'url');
     const { isAccessible, result } = await testService(mapUrl);
     
-    // Rest of the function remains the same
-    // ...
+    if (isAccessible) {
+        const mapData = result;
+        appendToResults(`\n`, 'separator');
+        appendToResults(`Map Title: `, 'map-title');
+        appendToResults(mapTitle, 'important');
+        appendToResults(`\n`, 'separator');
+        
+        let allLayersOk = true;
+        const problematicLayers = [];
+        
+        appendToResults("\nChecking Basemaps:", 'basemap');
+        appendToResults('\n');
+        const basemaps = mapData.baseMap?.baseMapLayers || [];
+        for (const basemap of basemaps) {
+            if (!await checkLayer(basemap, "  ")) {
+                allLayersOk = false;
+                problematicLayers.push(`Basemap: ${basemap.title || 'Unnamed Basemap'}`);
+            }
+        }
+        
+        appendToResults("\nChecking Operational Layers:", 'operational-layer');
+        appendToResults('\n');
+        const operationalLayers = mapData.operationalLayers || [];
+        for (const layer of operationalLayers) {
+            if (!await checkLayer(layer, "  ")) {
+                allLayersOk = false;
+                problematicLayers.push(layer.title || 'Unnamed Layer');
+            }
+        }
+        
+        return { allLayersOk, mapTitle, problematicLayers };
+    } else {
+        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, 'error');
+        appendToResults('\n');
+        return { allLayersOk: false, mapTitle, problematicLayers: ['Unable to fetch map data'] };
+    }
 }
 
 async function checkAllMaps() {
@@ -109,10 +143,16 @@ async function checkAllMaps() {
     let allMapsOk = true;
 
     for (const mapId of mapIds) {
-        const { allLayersOk, mapTitle, problematicLayers } = await checkSpecificMap(mapId);
-        if (!allLayersOk) {
+        try {
+            const { allLayersOk, mapTitle, problematicLayers } = await checkSpecificMap(mapId);
+            if (!allLayersOk) {
+                allMapsOk = false;
+                mapsWithErrors.push({ mapTitle, problematicLayers });
+            }
+        } catch (error) {
+            console.error(`Error checking map ${mapId}:`, error);
             allMapsOk = false;
-            mapsWithErrors.push({ mapTitle, problematicLayers });
+            mapsWithErrors.push({ mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: ['Error checking map'] });
         }
         appendToResults("\n" + "=".repeat(50) + "\n", 'separator');
     }
