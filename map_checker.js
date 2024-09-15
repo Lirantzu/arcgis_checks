@@ -118,84 +118,63 @@ async function checkLayer(layer, indent = "") {
     appendToResults(`${indent}Checking Layer: `, 'layer');
     appendToResults(`'${layerTitle}'`, 'important');
 
+    if (layer.type === 'Group Layer' || layer.layerType === 'GroupLayer') {
+        appendToResults(` - Group Layer`, 'info');
+        appendToResults('\n'); // Add a line break after the group layer title
+        let allChildrenAccessible = true;
+        for (const childLayer of layer.layers || []) {
+            const childAccessible = await checkLayer(childLayer, indent + "  ");
+            allChildrenAccessible = allChildrenAccessible && childAccessible;
+        }
+        return allChildrenAccessible;
+    }
+
+    if (layer.layerType === 'VectorTileLayer') {
+        return await checkVectorTileLayer(layer, indent);
+    }
+
     let url = layer.url || layer.styleUrl;
     if (!url) {
         console.log(`Layer without URL:`, layer);
         appendToResults(` - Status: Not checkable (no URL)`, 'warning');
+        appendToResults('\n'); // Add a line break after each layer check
         return false;
     }
 
     const { isAccessible, result } = await testService(url);
     if (isAccessible) {
         appendToResults(` - Status: Accessible`, 'success');
-        return true;
     } else {
-        appendToResults(` - Status: Not accessible - Error: ${result}`, 'error');
-        console.error(`Error checking layer '${layerTitle}': ${result}`);
-        return false;
+        appendToResults(` - Status: Not accessible`, 'error');
+        appendToResults(` - Error: ${result}`, 'error');
     }
+    appendToResults('\n'); // Add a line break after each layer check
+    return isAccessible;
 }
 
 async function checkSpecificMap(mapId) {
-    const mapInfo = mapNames[mapId];
-    let mapUrl, mapTitle;
+    const mapUrl = getMapUrl(mapId);
+    console.log(`Fetching JSON data from URL: ${mapUrl}`);
+    try {
+        const response = await fetch(mapUrl);
+        const mapData = await response.json();
+        
+        appendToResults(`Map Title: ${mapData.title}\n\n`, 'title');
 
-    if (typeof mapInfo === 'object') {
-        mapUrl = mapInfo.url;
-        mapTitle = mapInfo.name;
-        // For now, we'll skip checking this map
-        appendToResults(`Skipping portal map: ${mapTitle}`, 'important');
-        return { allLayersOk: true, mapTitle, problematicLayers: [] };
-    } else {
-        mapUrl = baseUrl.replace('{mapId}', mapId);
-        mapTitle = mapInfo;
-    }
-
-    appendToResults(`Fetching JSON data from URL: `, 'important');
-    appendToResults(mapUrl, 'url');
-    const { isAccessible, result } = await testService(mapUrl);
-    if (isAccessible) {
-        try {
-            const mapData = result;
-            appendToResults(`\n`, 'separator');
-            appendToResults(`Map Title: `, 'map-title');
-            appendToResults(mapTitle, 'important');
-            appendToResults(`\n`, 'separator');
-            
-            let allLayersOk = true;
-            const problematicLayers = [];
-            
-            appendToResults("\nChecking Basemaps:", 'basemap');
-            appendToResults('\n'); // Add a line break after "Checking Basemaps"
-            const basemaps = mapData.baseMap?.baseMapLayers || [];
-            for (const basemap of basemaps) {
-                if (!await checkLayer(basemap, "  ")) {
-                    allLayersOk = false;
-                    problematicLayers.push(`Basemap: ${basemap.title || 'Unnamed Basemap'}`);
-                }
-            }
-            
-            appendToResults("\nChecking Operational Layers:", 'operational-layer');
-            appendToResults('\n'); // Add a line break after "Checking Operational Layers"
-            const operationalLayers = mapData.operationalLayers || [];
-            for (const layer of operationalLayers) {
-                if (!await checkLayer(layer, "  ")) {
-                    allLayersOk = false;
-                    problematicLayers.push(layer.title || 'Unnamed Layer');
-                }
-            }
-            
-            return { allLayersOk, mapTitle, problematicLayers };
-        } catch (error) {
-            console.error(`Error parsing map data for ${mapTitle}: ${error}`);
-            appendToResults(`Failed to parse map data for ${mapTitle}. Error: ${error}`, 'error');
-            appendToResults('\n');
-            return { allLayersOk: false, mapTitle, problematicLayers: ['Unable to parse map data'] };
+        appendToResults("Checking Basemaps:\n", 'section');
+        for (const baseMap of mapData.baseMap.baseMapLayers) {
+            await checkLayer(baseMap);
         }
-    } else {
-        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, 'error');
-        appendToResults('\n');
-        return { allLayersOk: false, mapTitle, problematicLayers: ['Unable to fetch map data'] };
+
+        appendToResults("\nChecking Operational Layers:\n", 'section');
+        for (const layer of mapData.operationalLayers) {
+            await checkLayer(layer);
+        }
+
+        appendToResults("==================================================\n", 'separator');
+    } catch (error) {
+        console.error(`Failed to fetch web map data for map ID ${mapId}. Error: ${error}`);
+        appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${error}\n`, 'error');
     }
 }
 
