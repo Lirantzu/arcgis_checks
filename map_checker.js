@@ -17,18 +17,54 @@ const mapNames = {
 const mapIds = Object.keys(mapNames);
 const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{mapId}/data?f=json";
 
+const USERNAME = 'x3967755';
+const PASSWORD = 'Lir728t!';
+
+async function getToken(username, password) {
+    const tokenUrl = 'https://ta-muni.maps.arcgis.com/sharing/rest/generateToken';
+    const params = new URLSearchParams({
+        username: username,
+        password: password,
+        referer: window.location.origin,
+        f: 'json',
+        expiration: 60 // Token expiration in minutes
+    });
+
+    try {
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            body: params
+        });
+        const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+        return data.token;
+    } catch (error) {
+        console.error('Error getting token:', error);
+        throw error;
+    }
+}
+
+let token = '';
+
 async function testService(url) {
     try {
-        console.log(`Attempting to fetch: ${url}`);
-        const response = await fetch(url, { 
+        if (!token) {
+            token = await getToken(USERNAME, PASSWORD);
+        }
+        
+        const urlWithToken = `${url}${url.includes('?') ? '&' : '?'}token=${token}`;
+        console.log(`Attempting to fetch: ${urlWithToken}`);
+        
+        const response = await fetch(urlWithToken, { 
             method: 'GET',
             mode: 'cors',
-            // Remove the credentials option
             timeout: 15000 
         });
+        
         console.log(`Response status: ${response.status}`);
         console.log(`Response type: ${response.type}`);
-        console.log(`Response headers:`, Object.fromEntries(response.headers));
         
         const text = await response.text();
         if (text.trim().startsWith('<')) {
