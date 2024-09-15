@@ -19,7 +19,12 @@ const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{map
 
 async function testService(url) {
     try {
-        const response = await fetch(`${url}?f=json`, { timeout: 15000 });
+        const response = await fetch(url, { 
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'include',
+            timeout: 15000 
+        });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         if (data.error) {
@@ -98,11 +103,10 @@ async function checkSpecificMap(mapId) {
     const { isAccessible, result } = await testService(mapUrl);
     if (isAccessible) {
         const mapData = result;
-        const mapTitle = mapNames[mapId] || 'Unnamed Map';
-        appendToResults(`\n`, 'separator'); // New line before map title
+        appendToResults(`\n`, 'separator');
         appendToResults(`Map Title: `, 'map-title');
         appendToResults(mapTitle, 'important');
-        appendToResults(`\n`, 'separator'); // New line after map title
+        appendToResults(`\n`, 'separator');
         
         let allLayersOk = true;
         const problematicLayers = [];
@@ -130,8 +134,8 @@ async function checkSpecificMap(mapId) {
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
         appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, 'error');
-        appendToResults('\n'); // Add a line break after the error message
-        return { allLayersOk: false, mapTitle: mapNames[mapId] || 'Unnamed Map', problematicLayers: [] };
+        appendToResults('\n');
+        return { allLayersOk: false, mapTitle, problematicLayers: [] };
     }
 }
 
