@@ -7,16 +7,27 @@ const mapNames = {
     "b9926cc754f645a9bb72bdea824f5be9": "אפליקציית סקרי עצים",
     "f3286b9e33a14add8f7c7296fa670caf": "מרחקי השפעה - תמא 70",
     "7e445c19c3964444ad3086ca350359e2": "מגרשים חופפים למסילות צד",
-    "9ad9f3c465964920a65b57f000c647f4": "תתל 133 - מסילות 5 ו-6",
+    "9ad9f3c465964920a65b57f000c647f4": {
+        name: "תתל 133 - מסילות 5 ו-6",
+        url: "https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/9ad9f3c465964920a65b57f000c647f4/data?f=json"
+    },
    
 };
 
 const mapIds = Object.keys(mapNames);
 const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{mapId}/data?f=json";
 
+function getMapUrl(mapId) {
+    if (typeof mapNames[mapId] === 'object' && mapNames[mapId].url) {
+        return mapNames[mapId].url;
+    }
+    return baseUrl.replace('{mapId}', mapId);
+}
+
 async function testService(url) {
     try {
-        const response = await fetch(`${url}?f=json`, { timeout: 15000 });
+        const finalUrl = url.includes('f=json') ? url : `${url}${url.includes('?') ? '&' : '?'}f=json`;
+        const response = await fetch(finalUrl, { timeout: 15000 });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         if (data.error) {
@@ -86,7 +97,7 @@ async function checkLayer(layer, indent = "") {
 }
 
 async function checkSpecificMap(mapId) {
-    const mapUrl = baseUrl.replace('{mapId}', mapId);
+    const mapUrl = getMapUrl(mapId);
     appendToResults(`Fetching JSON data from URL: `, 'important');
     appendToResults(mapUrl, 'url');
     const { isAccessible, result } = await testService(mapUrl);
