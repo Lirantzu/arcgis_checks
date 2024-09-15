@@ -11,7 +11,6 @@ const mapNames = {
         name: "תתל 133 - מסילות 5 ו-6",
         url: "https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/9ad9f3c465964920a65b57f000c647f4/data?f=json"
     },
-   
 };
 
 const mapIds = Object.keys(mapNames);
@@ -109,18 +108,9 @@ async function checkLayer(layer, indent = "") {
     appendToResults(`${indent}Checking Layer: `, 'layer');
     appendToResults(`'${layerTitle}'`, 'important');
 
-    if (!layer.url && !layer.styleUrl) {
+    let url = layer.url || layer.styleUrl;
+    if (!url) {
         console.log(`Layer without URL:`, layer);
-        appendToResults(` - Status: Not checkable (no URL)`, 'warning');
-        return false;
-    }
-
-    let url;
-    if (layer.url) {
-        url = layer.url;
-    } else if (layer.styleUrl) {
-        url = layer.styleUrl;
-    } else {
         appendToResults(` - Status: Not checkable (no URL)`, 'warning');
         return false;
     }
