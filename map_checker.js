@@ -19,19 +19,24 @@ const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{map
 
 async function testService(url) {
     try {
+        console.log(`Attempting to fetch: ${url}`);
         const response = await fetch(url, { 
             method: 'GET',
             mode: 'cors',
             credentials: 'include',
             timeout: 15000 
         });
+        console.log(`Response status: ${response.status}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
+        const text = await response.text();
+        console.log(`Response text: ${text.substring(0, 100)}...`);
+        const data = JSON.parse(text);
         if (data.error) {
             return { isAccessible: false, result: data.error.message };
         }
         return { isAccessible: true, result: data };
     } catch (error) {
+        console.error(`Error in testService: ${error}`);
         return { isAccessible: false, result: error.toString() };
     }
 }
