@@ -22,6 +22,13 @@ const PORTAL_URL = 'https://gisportal02.tlv.gov.il/portal';
 
 let portalToken = '';
 
+function getMapUrl(mapId) {
+    if (mapNames[mapId] && typeof mapNames[mapId] === 'object' && mapNames[mapId].url) {
+        return mapNames[mapId].url;
+    }
+    return `https://ta-muni.maps.arcgis.com/sharing/rest/content/items/${mapId}/data?f=json`;
+}
+
 async function getPortalToken(username, password) {
     const tokenUrl = `${PORTAL_URL}/sharing/rest/generateToken`;
     const params = new URLSearchParams({
@@ -204,3 +211,5 @@ async function checkAllMaps() {
     }
     appendToResults("\n" + "=".repeat(50) + "\n", 'separator');
 }
+
+// Make sure to call checkAllMaps() when you want to start the checking process
