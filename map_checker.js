@@ -19,9 +19,12 @@ const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{map
 
 const USERNAME = 'x3967755';
 const PASSWORD = 'Lir728t!';
+const PORTAL_URL = 'https://gisportal02.tlv.gov.il/portal';
 
-async function getToken(username, password) {
-    const tokenUrl = 'https://ta-muni.maps.arcgis.com/sharing/rest/generateToken';
+let portalToken = '';
+
+async function getPortalToken(username, password) {
+    const tokenUrl = `${PORTAL_URL}/sharing/rest/generateToken`;
     const params = new URLSearchParams({
         username: username,
         password: password,
@@ -41,23 +44,24 @@ async function getToken(username, password) {
         }
         return data.token;
     } catch (error) {
-        console.error('Error getting token:', error);
+        console.error('Error getting portal token:', error);
         throw error;
     }
 }
 
-let token = '';
-
 async function testService(url) {
     try {
-        if (!token) {
-            token = await getToken(USERNAME, PASSWORD);
+        let finalUrl = url;
+        if (url.includes(PORTAL_URL)) {
+            if (!portalToken) {
+                portalToken = await getPortalToken(USERNAME, PASSWORD);
+            }
+            finalUrl = `${url}${url.includes('?') ? '&' : '?'}token=${portalToken}`;
         }
         
-        const urlWithToken = `${url}${url.includes('?') ? '&' : '?'}token=${token}`;
-        console.log(`Attempting to fetch: ${urlWithToken}`);
+        console.log(`Attempting to fetch: ${finalUrl}`);
         
-        const response = await fetch(urlWithToken, { 
+        const response = await fetch(finalUrl, { 
             method: 'GET',
             mode: 'cors',
             timeout: 15000 
