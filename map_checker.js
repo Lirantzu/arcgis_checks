@@ -31,10 +31,9 @@ async function testService(url) {
         console.log(`Response headers:`, Object.fromEntries(response.headers));
         
         const text = await response.text();
-        console.log(`Response text (first 500 characters): ${text.substring(0, 500)}`);
-        
         if (text.trim().startsWith('<')) {
             console.error('Received HTML instead of JSON');
+            console.error(`HTML content (first 500 characters): ${text.substring(0, 500)}`);
             return { isAccessible: false, result: 'Received HTML instead of JSON', htmlContent: text };
         }
         
@@ -69,6 +68,12 @@ async function checkLayer(layer, indent = "") {
     const layerTitle = layer.title || 'Unnamed Layer';
     appendToResults(`${indent}Checking Layer: `, 'layer');
     appendToResults(`'${layerTitle}'`, 'important');
+
+    if (!layer.url && !layer.styleUrl) {
+        console.log(`Layer without URL:`, layer);
+        appendToResults(` - Status: Not checkable (no URL)`, 'warning');
+        return false;
+    }
 
     let url;
     if (layer.url) {
