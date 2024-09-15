@@ -168,20 +168,33 @@ async function checkSpecificMap(mapId) {
         
         appendToResults(`Map Title: ${mapData.title}\n\n`, 'title');
 
+        let allLayersOk = true;
+        const problematicLayers = [];
+
         appendToResults("Checking Basemaps:\n", 'section');
         for (const baseMap of mapData.baseMap.baseMapLayers) {
-            await checkLayer(baseMap);
+            const layerOk = await checkLayer(baseMap);
+            if (!layerOk) {
+                allLayersOk = false;
+                problematicLayers.push(baseMap.title || 'Unnamed Basemap Layer');
+            }
         }
 
         appendToResults("\nChecking Operational Layers:\n", 'section');
         for (const layer of mapData.operationalLayers) {
-            await checkLayer(layer);
+            const layerOk = await checkLayer(layer);
+            if (!layerOk) {
+                allLayersOk = false;
+                problematicLayers.push(layer.title || 'Unnamed Operational Layer');
+            }
         }
 
         appendToResults("==================================================\n", 'separator');
+        return { allLayersOk, mapTitle: mapData.title, problematicLayers };
     } catch (error) {
         console.error(`Failed to fetch web map data for map ID ${mapId}. Error: ${error}`);
         appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${error}\n`, 'error');
+        return { allLayersOk: false, mapTitle: mapNames[mapId], problematicLayers: ['Unable to fetch map data'] };
     }
 }
 
