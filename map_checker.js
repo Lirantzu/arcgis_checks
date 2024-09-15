@@ -1,3 +1,8 @@
+const USERNAME = 'x3967755';
+const PASSWORD = 'Lir728t!';
+const PORTAL_URL = 'https://gisportal02.tlv.gov.il/portal';
+let portalToken = '';
+
 // Map names and IDs
 const mapNames = {
     "3a64f1a338b64c1da39556f363321000": "אפליקציה חיצונית",
@@ -9,7 +14,7 @@ const mapNames = {
     "7e445c19c3964444ad3086ca350359e2": "מגרשים חופפים למסילות צד",
     "9ad9f3c465964920a65b57f000c647f4": {
         name: "תתל 133 - מסילות 5 ו-6",
-        url: "https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/9ad9f3c465964920a65b57f000c647f4/data?f=json"
+        url: "https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/9ad9f3c465964920a65b57f000c647f4/data"
     },
    
 };
@@ -24,9 +29,44 @@ function getMapUrl(mapId) {
     return baseUrl.replace('{mapId}', mapId);
 }
 
+async function getPortalToken() {
+    const tokenUrl = `${PORTAL_URL}/sharing/rest/generateToken`;
+    const params = new URLSearchParams({
+        username: USERNAME,
+        password: PASSWORD,
+        referer: window.location.origin,
+        f: 'json',
+        expiration: 60 // Token expiration in minutes
+    });
+
+    try {
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            body: params
+        });
+        const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+        return data.token;
+    } catch (error) {
+        console.error('Error getting portal token:', error);
+        throw error;
+    }
+}
+
 async function testService(url) {
     try {
-        const finalUrl = url.includes('f=json') ? url : `${url}${url.includes('?') ? '&' : '?'}f=json`;
+        let finalUrl = url;
+        if (url.includes(PORTAL_URL)) {
+            if (!portalToken) {
+                portalToken = await getPortalToken();
+            }
+            finalUrl = `${url}${url.includes('?') ? '&' : '?'}token=${portalToken}`;
+        } else if (!url.includes('f=json')) {
+            finalUrl = `${url}${url.includes('?') ? '&' : '?'}f=json`;
+        }
+        
         const response = await fetch(finalUrl, { timeout: 15000 });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
