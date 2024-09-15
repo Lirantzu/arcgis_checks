@@ -12,6 +12,33 @@ const mapNames = {
 
 const mapIds = Object.keys(mapNames);
 const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{mapId}/data?f=json";
+let token = "";
+
+// Function to get token for Portal maps
+async function getToken(username, password) {
+    const tokenUrl = "https://gisportal02.tlv.gov.il/portal/sharing/rest/generateToken";
+    const params = new URLSearchParams({
+        username: username,
+        password: password,
+        referer: "yourAppURL", // Update with your actual app URL or referer
+        f: "json"
+    });
+
+    try {
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            body: params
+        });
+        const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+        return data.token;
+    } catch (error) {
+        console.error("Error fetching token:", error);
+        return null;
+    }
+}
 
 async function testService(url) {
     try {
@@ -30,7 +57,7 @@ async function testService(url) {
 async function checkVectorTileLayer(layer, indent = "") {
     const layerTitle = layer.title || 'Unnamed VectorTileLayer';
     appendToResults(`${indent}Checking VectorTileLayer: `, 'vector-tile-layer');
-    appendToResults(`'${layerTitle}'`, 'important');
+    appendToResults(`${layerTitle}`, 'important');
 
     const { isAccessible, result } = await testService(layer.styleUrl || `https://tiles.arcgis.com/tiles/PcGFyTym9yKZBRgz/arcgis/rest/services/${layerTitle}/VectorTileServer`);
     if (isAccessible) {
@@ -39,7 +66,7 @@ async function checkVectorTileLayer(layer, indent = "") {
         appendToResults(` - Status: Not accessible`, 'error');
         appendToResults(` - Error: ${result}`, 'error');
     }
-    appendToResults('\n'); // Add a line break after each layer check
+    appendToResults('\n');
     return isAccessible;
 }
 
@@ -53,7 +80,7 @@ async function checkLayer(layer, indent = "") {
     
     if (layer.layers || layer.layerGroups) {
         appendToResults(`${indent}Group: `, 'layer-group');
-        appendToResults(`'${layerTitle}'`); // Removed 'important' class
+        appendToResults(`${layerTitle}`);
         appendToResults('\n');
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
@@ -65,7 +92,7 @@ async function checkLayer(layer, indent = "") {
         return allSublayersOk;
     } else if (layerUrl) {
         appendToResults(`${indent}Checking Layer: `, 'operational-layer');
-        appendToResults(`'${layerTitle}'`); // Removed 'important' class
+        appendToResults(`${layerTitle}`);
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
             appendToResults(` - Status: Accessible`, 'success');
@@ -77,7 +104,7 @@ async function checkLayer(layer, indent = "") {
         return isAccessible;
     } else {
         appendToResults(`${indent}Layer: `, 'operational-layer');
-        appendToResults(`'${layerTitle}'`); // Removed 'important' class
+        appendToResults(`${layerTitle}`);
         appendToResults(` - No URL found. Unable to check accessibility.`, 'warning');
         appendToResults('\n');
         return true;
@@ -89,7 +116,7 @@ async function checkSpecificMap(mapId) {
     let mapTitle;
 
     if (typeof mapNames[mapId] === 'object' && mapNames[mapId].isPortal) {
-        mapUrl = `https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/${mapId}/data`;
+        mapUrl = `https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/${mapId}/data?f=json&token=${token}`;
         mapTitle = mapNames[mapId].name;
     } else {
         mapUrl = baseUrl.replace('{mapId}', mapId);
@@ -102,10 +129,10 @@ async function checkSpecificMap(mapId) {
     
     if (isAccessible) {
         const mapData = result;
-        appendToResults(`\n`, 'separator');
+        appendToResults('\n', 'separator');
         appendToResults(`Map Title: `, 'map-title');
         appendToResults(mapTitle, 'important');
-        appendToResults(`\n`, 'separator');
+        appendToResults('\n', 'separator');
         
         let allLayersOk = true;
         const problematicLayers = [];
@@ -170,3 +197,9 @@ async function checkAllMaps() {
     }
     appendToResults("\n" + "=".repeat(50) + "\n", 'separator');
 }
+
+// Main execution
+(async () => {
+    token = await getToken('x39677554', 'Lir728t!'); 
+    await checkAllMaps();
+})();
