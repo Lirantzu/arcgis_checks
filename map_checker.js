@@ -12,54 +12,60 @@ const mapNames = {
 
 const mapIds = Object.keys(mapNames);
 const baseUrl = "https://ta-muni.maps.arcgis.com/sharing/rest/content/items/{mapId}/data?f=json";
-let token = "";
 
-// Function to get token for Portal maps
-async function getToken(username, password) {
-    const tokenUrl = "https://gisportal02.tlv.gov.il/portal/sharing/rest/generateToken";
-    const params = new URLSearchParams({
-        username: username,
-        password: password,
-        referer: "https://Lirantzu.github.io", // Update with your actual app URL or referer
-        f: "json"
+// Function to trigger authentication for Portal maps
+async function getPortalToken() {
+    const portalUrl = "https://gisportal02.tlv.gov.il/portal/sharing/rest/generateToken";
+    const credentials = {
+        username: "x3967755", // Replace with your username
+        password: "Lir728t!"  // Replace with your password
+    };
+    
+    const response = await fetch(portalUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+            username: credentials.username,
+            password: credentials.password,
+            f: "json"
+        })
     });
+    
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.token;
+}
 
-    try {
-        const response = await fetch(tokenUrl, {
-            method: 'POST',
-            body: params
-        });
-        const data = await response.json();
-        if (data.error) {
-            throw new Error(data.error.message);
-        }
-        return data.token;
-    } catch (error) {
-        console.error("Error fetching token:", error);
-        return null;
+// Check if the map is Portal or AGOL and return the proper URL
+async function getMapUrl(mapId) {
+    if (typeof mapNames[mapId] === 'object' && mapNames[mapId].isPortal) {
+        const token = await getPortalToken();
+        return `https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/${mapId}/data?f=json&token=${token}`;
+    } else {
+        return baseUrl.replace('{mapId}', mapId);
     }
 }
 
+// Function to check if the service is working
 async function testService(url) {
     try {
-        const response = await fetch(`${url}?f=json`, { timeout: 15000 });
+        const response = await fetch(url, { timeout: 15000 });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        if (data.error) {
-            return { isAccessible: false, result: data.error.message };
-        }
+        if (data.error) return { isAccessible: false, result: data.error.message };
         return { isAccessible: true, result: data };
     } catch (error) {
         return { isAccessible: false, result: error.toString() };
     }
 }
 
+// Function to check vector tile layer
 async function checkVectorTileLayer(layer, indent = "") {
     const layerTitle = layer.title || 'Unnamed VectorTileLayer';
     appendToResults(`${indent}Checking VectorTileLayer: `, 'vector-tile-layer');
-    appendToResults(`${layerTitle}`, 'important');
-
-    const { isAccessible, result } = await testService(layer.styleUrl || `https://tiles.arcgis.com/tiles/PcGFyTym9yKZBRgz/arcgis/rest/services/${layerTitle}/VectorTileServer`);
+    appendToResults(layerTitle, 'important');
+    
+    const { isAccessible, result } = await testService(layer.styleUrl);
     if (isAccessible) {
         appendToResults(` - Status: Accessible`, 'success');
     } else {
@@ -70,6 +76,7 @@ async function checkVectorTileLayer(layer, indent = "") {
     return isAccessible;
 }
 
+// Function to check layers
 async function checkLayer(layer, indent = "") {
     const layerTitle = layer.title || `id: ${layer.id || 'Unnamed Layer'}`;
     const layerUrl = layer.url;
@@ -80,7 +87,7 @@ async function checkLayer(layer, indent = "") {
     
     if (layer.layers || layer.layerGroups) {
         appendToResults(`${indent}Group: `, 'layer-group');
-        appendToResults(`${layerTitle}`);
+        appendToResults(layerTitle);
         appendToResults('\n');
         let allSublayersOk = true;
         const sublayers = (layer.layers || []).concat(layer.layerGroups || []);
@@ -92,7 +99,7 @@ async function checkLayer(layer, indent = "") {
         return allSublayersOk;
     } else if (layerUrl) {
         appendToResults(`${indent}Checking Layer: `, 'operational-layer');
-        appendToResults(`${layerTitle}`);
+        appendToResults(layerTitle);
         const { isAccessible, result } = await testService(layerUrl);
         if (isAccessible) {
             appendToResults(` - Status: Accessible`, 'success');
@@ -104,39 +111,32 @@ async function checkLayer(layer, indent = "") {
         return isAccessible;
     } else {
         appendToResults(`${indent}Layer: `, 'operational-layer');
-        appendToResults(`${layerTitle}`);
+        appendToResults(layerTitle);
         appendToResults(` - No URL found. Unable to check accessibility.`, 'warning');
         appendToResults('\n');
         return true;
     }
 }
 
+// Function to check a specific map
 async function checkSpecificMap(mapId) {
-    let mapUrl;
-    let mapTitle;
+    const mapUrl = await getMapUrl(mapId);
+    const mapTitle = typeof mapNames[mapId] === 'object' ? mapNames[mapId].name : mapNames[mapId] || 'Unnamed Map';
 
-    if (typeof mapNames[mapId] === 'object' && mapNames[mapId].isPortal) {
-        mapUrl = `https://gisportal02.tlv.gov.il/portal/sharing/rest/content/items/${mapId}/data?f=json&token=${token}`;
-        mapTitle = mapNames[mapId].name;
-    } else {
-        mapUrl = baseUrl.replace('{mapId}', mapId);
-        mapTitle = mapNames[mapId] || 'Unnamed Map';
-    }
-
-    appendToResults(`Fetching JSON data from URL: `, 'important');
+    appendToResults("Fetching JSON data from URL: ", 'important');
     appendToResults(mapUrl, 'url');
+
     const { isAccessible, result } = await testService(mapUrl);
-    
+
     if (isAccessible) {
         const mapData = result;
-        appendToResults('\n', 'separator');
-        appendToResults(`Map Title: `, 'map-title');
-        appendToResults(mapTitle, 'important');
-        appendToResults('\n', 'separator');
-        
+        appendToResults("\n", 'separator');
+        appendToResults(`Map Title: ${mapTitle}`, 'map-title');
+        appendToResults("\n", 'separator');
+
         let allLayersOk = true;
         const problematicLayers = [];
-        
+
         appendToResults("\nChecking Basemaps:", 'basemap');
         appendToResults('\n');
         const basemaps = mapData.baseMap?.baseMapLayers || [];
@@ -146,7 +146,7 @@ async function checkSpecificMap(mapId) {
                 problematicLayers.push(`Basemap: ${basemap.title || 'Unnamed Basemap'}`);
             }
         }
-        
+
         appendToResults("\nChecking Operational Layers:", 'operational-layer');
         appendToResults('\n');
         const operationalLayers = mapData.operationalLayers || [];
@@ -156,7 +156,7 @@ async function checkSpecificMap(mapId) {
                 problematicLayers.push(layer.title || 'Unnamed Layer');
             }
         }
-        
+
         return { allLayersOk, mapTitle, problematicLayers };
     } else {
         appendToResults(`Failed to fetch web map data for map ID ${mapId}. Error: ${result}`, 'error');
@@ -165,6 +165,7 @@ async function checkSpecificMap(mapId) {
     }
 }
 
+// Function to check all maps
 async function checkAllMaps() {
     const mapsWithErrors = [];
     let allMapsOk = true;
@@ -195,11 +196,4 @@ async function checkAllMaps() {
             }
         }
     }
-    appendToResults("\n" + "=".repeat(50) + "\n", 'separator');
-}
-
-// Main execution
-(async () => {
-    token = await getToken('x39677554', 'Lir728t!'); 
-    await checkAllMaps();
-})();
+    appendToResults("\n"
