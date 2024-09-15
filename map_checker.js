@@ -58,6 +58,11 @@ async function testService(url) {
             finalUrl = `${url}${url.includes('?') ? '&' : '?'}token=${portalToken}`;
         }
         
+        // Append query parameters for JSON response if not already present
+        if (!finalUrl.includes('f=json')) {
+            finalUrl += `${finalUrl.includes('?') ? '&' : '?'}f=json`;
+        }
+        
         console.log(`Attempting to fetch: ${finalUrl}`);
         
         const response = await fetch(finalUrl, { 
