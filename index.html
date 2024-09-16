@@ -8,9 +8,9 @@
         body, html {
             height: 100%;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Consolas', 'Courier New', monospace;
             background-color: #1E1E1E;
-            color: #E0E0E0;
+            color: #D4D4D4;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -26,10 +26,10 @@
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
-            color: #03A9F4;
+            color: #569CD6;
         }
         button {
-            background-color: #4CAF50;
+            background-color: #0E639C;
             color: #FFFFFF;
             border: none;
             padding: 10px 20px;
@@ -39,7 +39,7 @@
             margin-bottom: 20px;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #1177BB;
         }
         #results {
             width: 80%;
@@ -47,23 +47,25 @@
             overflow: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
-            border: 1px solid #FFF;
+            border: 1px solid #3C3C3C;
             padding: 10px;
             box-sizing: border-box;
-            font-family: Consolas, 'Courier New', monospace;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
         }
-        .success { color: #4CAF50; }
-        .error { color: #F44336; }
-        .warning { color: #FF9800; }
-        .map-title { color: #03A9F4; }
-        .layer-group { color: #9C27B0; }
-        .basemap { color: #009688; }
-        .operational-layer { color: #8BC34A; }
-        .vector-tile-layer { color: #00BCD4; }
-        .url { color: #FFEB3B; }
-        .layer-id { color: #9E9E9E; }
+        .success { color: #6A9955; }
+        .error { color: #F44747; }
+        .warning { color: #DCDCAA; }
+        .map-title { color: #4EC9B0; }
+        .layer-group { color: #C586C0; }
+        .basemap { color: #9CDCFE; }
+        .operational-layer { color: #B5CEA8; }
+        .vector-tile-layer { color: #CE9178; }
+        .url { color: #569CD6; }
+        .layer-id { color: #9CDCFE; }
         .important { color: #FFFFFF; font-weight: bold; }
-        .separator { color: #616161; }
+        .separator { color: #808080; }
     </style>
 </head>
 <body>
@@ -82,6 +84,12 @@
                 span.className = className;
                 span.textContent = text;
                 resultsElement.appendChild(span);
+                
+                // Add line breaks after certain elements
+                if (['map-title', 'layer-group', 'basemap', 'operational-layer', 'vector-tile-layer'].includes(className)) {
+                    resultsElement.appendChild(document.createElement('br'));
+                }
+                
                 resultsElement.scrollTop = resultsElement.scrollHeight;
             } else {
                 console.log(text);
