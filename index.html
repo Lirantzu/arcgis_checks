@@ -84,12 +84,6 @@
                 span.className = className;
                 span.textContent = text;
                 resultsElement.appendChild(span);
-                
-                // Add line breaks after certain elements
-                if (['map-title', 'layer-group', 'basemap', 'operational-layer', 'vector-tile-layer'].includes(className)) {
-                    resultsElement.appendChild(document.createElement('br'));
-                }
-                
                 resultsElement.scrollTop = resultsElement.scrollHeight;
             } else {
                 console.log(text);
